@@ -2,6 +2,9 @@
   "name": "playsphere-ai",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
     "dev": "next dev frontend",
     "build": "next build frontend",
