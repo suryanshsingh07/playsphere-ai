@@ -1,7 +1,7 @@
 // Firebase configuration and initialization
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, setPersistence, browserLocalPersistence, type Auth } from 'firebase/auth';
+import { initializeFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,16 +12,47 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Prevent duplicate initialization in dev with hot reload
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Lazy initialization — prevents crash during Next.js build when env vars are missing
+let _app: FirebaseApp | null = null;
+let _auth: Auth | null = null;
+let _db: Firestore | null = null;
 
-export const auth = getAuth(app);
-// Set persistence explicitly to browser local persistence
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-  console.error('Failed to set Firebase Auth persistence:', err);
+function getFirebaseApp(): FirebaseApp {
+  if (!_app) {
+    _app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  }
+  return _app;
+}
+
+// Use getters so Firebase only initializes when actually accessed at runtime
+export const auth: Auth = new Proxy({} as Auth, {
+  get(_target, prop) {
+    if (!_auth) {
+      _auth = getAuth(getFirebaseApp());
+      // Set persistence explicitly to browser local persistence
+      if (typeof window !== 'undefined') {
+        setPersistence(_auth, browserLocalPersistence).catch((err) => {
+          console.error('Failed to set Firebase Auth persistence:', err);
+        });
+      }
+    }
+    return (_auth as any)[prop];
+  },
 });
 
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
+export const db: Firestore = new Proxy({} as Firestore, {
+  get(_target, prop) {
+    if (!_db) {
+      _db = initializeFirestore(getFirebaseApp(), {
+        experimentalForceLongPolling: true,
+      });
+    }
+    return (_db as any)[prop];
+  },
 });
-export default app;
+
+export default new Proxy({} as FirebaseApp, {
+  get(_target, prop) {
+    return (getFirebaseApp() as any)[prop];
+  },
+});
