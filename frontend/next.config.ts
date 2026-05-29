@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
       "@/backend": path.resolve(process.cwd(), "../backend"),
       "@/shared": path.resolve(process.cwd(), "../shared"),
     };
+
+    // Ensure backend/ and shared/ can find packages installed in frontend/node_modules
+    config.resolve.modules = [
+      path.resolve(process.cwd(), "node_modules"),
+      "node_modules",
+      ...(config.resolve.modules || []),
+    ];
+
     return config;
   },
 };
