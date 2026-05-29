@@ -1,0 +1,342 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Dark Theme (Default) */
+    --bg-color: #080a10;
+    --text-color: #f8fafc;
+    --card-bg: #121526;
+    --card-bg-hover: #1e293b;
+    --dot-color: rgba(255, 255, 255, 0.05);
+    --input-bg: #121526;
+    --border-color: #000000;
+  }
+  
+  .light {
+    /* Light Theme */
+    --bg-color: #fcfaf7; /* warm neo-brutalist cream */
+    --text-color: #000000;
+    --card-bg: #ffffff;
+    --card-bg-hover: #f3f4f6;
+    --dot-color: rgba(0, 0, 0, 0.08);
+    --input-bg: #ffffff;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--text-color);
+    font-family: var(--font-inter);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Global Neo-brutalist input & select styles */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  input[type="date"], 
+  select, 
+  textarea {
+    background-color: var(--input-bg) !important;
+    border: 3px solid var(--border-color) !important;
+    box-shadow: 3px 3px 0px 0px var(--border-color) !important;
+    color: var(--text-color) !important;
+    border-radius: 8px !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    font-family: var(--font-space);
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+
+  input[type="text"]:focus, 
+  input[type="email"]:focus, 
+  input[type="password"]:focus, 
+  input[type="date"]:focus, 
+  select:focus, 
+  textarea:focus {
+    border-color: #facc15 !important; /* bright yellow on focus */
+    box-shadow: 5px 5px 0px 0px #22d3ee !important; /* cyan shadow on focus */
+    transform: translate(-1px, -1px);
+    outline: none !important;
+  }
+
+  /* Remove default arrows for numeric inputs in chrome/safari/etc */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Customize select options dropdown style */
+  option {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-space);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #facc15, #f472b6, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+  }
+
+  .gradient-text-sport {
+    background: linear-gradient(135deg, #facc15, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+  }
+
+  /* Neo-brutalist Box System (replaces old glassmorphism) */
+  .glass {
+    background: var(--card-bg);
+    border: 3px solid var(--border-color);
+    box-shadow: 5px 5px 0px 0px var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .glass-dark {
+    background: var(--bg-color);
+    border: 3px solid var(--border-color);
+    box-shadow: 5px 5px 0px 0px var(--border-color);
+    border-radius: 8px;
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.15), 4px 4px 0px 0px #000000;
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(129, 140, 248, 0.15), 4px 4px 0px 0px #000000;
+  }
+
+  .hero-gradient {
+    background-color: #080a10;
+    background-image: radial-gradient(circle at 50% -20%, rgba(34, 211, 238, 0.15) 0%, transparent 60%),
+                      radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 24px 24px;
+    border-bottom: 3px solid #000000;
+  }
+
+  /* Card Hover Effect */
+  .card-hover {
+    transition: all 0.25s ease;
+  }
+
+  .card-hover:hover {
+    transform: translate(-6px, -6px);
+    box-shadow: 11px 11px 0px 0px #facc15; /* stark yellow shadow */
+    border-color: #000000;
+  }
+
+  /* Neo-brutalist buttons */
+  .btn-primary {
+    background: #facc15; /* stark yellow */
+    color: #000000;
+    font-family: var(--font-space);
+    font-weight: 800;
+    padding: 0.75rem 1.75rem;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0px 0px #000000;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #22d3ee; /* cyan shadow */
+    background: #facc15;
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000000;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 2px 2px 0px 0px #000000;
+  }
+
+  .btn-secondary {
+    background: #22d3ee; /* stark cyan */
+    color: #000000;
+    font-family: var(--font-space);
+    font-weight: 800;
+    padding: 0.75rem 1.75rem;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0px 0px #000000;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #f472b6; /* pink shadow */
+    background: #22d3ee;
+  }
+
+  .btn-secondary:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000000;
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 2px 2px 0px 0px #000000;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animation-delay-1s {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-2s {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-150ms {
+    animation-delay: 150ms;
+  }
+
+  .animation-delay-300ms {
+    animation-delay: 300ms;
+  }
+
+  /* Form label utility for VenueForm and other forms */
+  .field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Extra border widths */
+  .border-3 {
+    border-width: 3px;
+  }
+}
+
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.2), 4px 4px 0px 0px #000000; }
+  50% { box-shadow: 0 0 35px rgba(34, 211, 238, 0.4), 4px 4px 0px 0px #000000; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Custom styling for Google Maps InfoWindow elements to match dark theme */
+.gm-style .gm-style-iw-c {
+  background-color: #0f172a !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.gm-style .gm-style-iw-t::after {
+  background: #0f172a !important;
+  box-shadow: -2px 2px 0px 0px #000000 !important;
+  border-bottom: 2px solid #000000 !important;
+  border-left: 2px solid #000000 !important;
+}
+
+/* Hide default Google Maps InfoWindow close button and paddings */
+.gm-style-iw-ch {
+  padding: 0 !important;
+}
+
+.gm-ui-hover-effect {
+  top: 4px !important;
+  right: 4px !important;
+  background: #000000 !important;
+  border-radius: 50% !important;
+  border: 2px solid #000000 !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.gm-ui-hover-effect span {
+  margin: 0 !important;
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}

@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── Users collection ─────────────────────────────────────────────────
+    match /users/{userId} {
+      // Users can read and create their own profile
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      // Users can update their own profile (excluding role and approvalStatus)
+      // Admins can update any user profile (allowing owner approvals)
+      allow update: if isAuthenticated() && (
+        isAdmin() || 
+        (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'approvalStatus']))
+      );
+    }
+
+    // ── Venues collection ─────────────────────────────────────────────────
+    match /venues/{venueId} {
+      // Anyone can read venues (public discovery)
+      allow read: if true;
+      // Authenticated users can create venues (owner adds venue)
+      allow create: if isAuthenticated();
+      // Owners can update/delete their own venues; anyone authenticated can update (for availability toggle)
+      allow update: if isAuthenticated() 
+        && (resource.data.ownerId == request.auth.uid || resource.data.ownerId == 'system');
+      allow delete: if isAuthenticated()
+        && (resource.data.ownerId == request.auth.uid || isAdmin());
+    }
+
+    // ── Bookings collection ────────────────────────────────────────────────
+    match /bookings/{bookingId} {
+      // Users can read their own bookings; owners can read bookings for their venues
+      allow read: if isAuthenticated();
+      // Any authenticated user can create a booking (player books)
+      allow create: if isAuthenticated();
+      // Users can update their own bookings (e.g., cancel, submit payment), owners can verify them, and admins can manage them
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.playerId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      // No delete (preserve booking history)
+      allow delete: if false;
+    }
+  }
+}
