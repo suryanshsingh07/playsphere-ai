@@ -15,11 +15,52 @@ import {
   arrayRemove,
   onSnapshot,
   Unsubscribe,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from './config';
 import { isSlotInPast } from '@/shared/helpers/pricing';
 import { Venue, Booking, UserProfile, VenueFilters, ApprovalStatus, Landmark, Infrastructure, OwnershipRequest } from '@/shared/types';
 import { generateTicketId } from '@/shared/helpers/ticket';
+
+/** Helper to convert Firestore Timestamps to plain JS objects recursively,
+ *  which avoids Next.js Server-to-Client Component serialization errors. */
+export function serializeData<T>(data: T): T {
+  if (data === null || data === undefined) return data;
+
+  if (
+    (typeof Timestamp !== 'undefined' && data instanceof Timestamp) ||
+    (typeof data === 'object' &&
+      data !== null &&
+      'seconds' in data &&
+      'nanoseconds' in data &&
+      typeof (data as any).toDate === 'function')
+  ) {
+    return {
+      seconds: (data as any).seconds,
+      nanoseconds: (data as any).nanoseconds,
+    } as any;
+  }
+
+  if (data instanceof Date) {
+    return data as any;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map((item) => serializeData(item)) as any;
+  }
+
+  if (typeof data === 'object') {
+    const serialized: any = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        serialized[key] = serializeData(data[key]);
+      }
+    }
+    return serialized;
+  }
+
+  return data;
+}
 
 
 // ── VENUES ──────────────────────────────────────────────────────────────────
