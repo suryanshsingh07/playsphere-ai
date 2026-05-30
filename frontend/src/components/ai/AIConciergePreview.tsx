@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { Bot, Send, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/shared/helpers/utils';
@@ -39,18 +39,12 @@ const GUIDANCE_GREETING = "Hi! I'm PlaySphere AI (Guidance Mode) 🏸 I'm here t
 
 export function AIConciergePreview() {
   const [mode, setMode] = useState<'discovery' | 'guidance'>('discovery');
-  const [messages, setMessages] = useState<ChatMessageItem[]>([
-    {
-      role: 'assistant',
-      content: DISCOVERY_GREETING,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // When mode changes, reset chat with the appropriate greeting
+  // Initialize and handle mode changes on client only to prevent hydration mismatch
   useEffect(() => {
     setMessages([
       {
@@ -86,9 +80,9 @@ export function AIConciergePreview() {
 
     if (isRetry) {
       // Remove the last error assistant message
-      setMessages((prev) => prev.slice(0, -1));
-    } else if (!text || !messages.some(m => m.role === 'user' && m.content === messageText && Date.now() - m.timestamp.getTime() < 5000)) {
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev: ChatMessageItem[]) => prev.slice(0, -1));
+    } else if (!text || !messages.some((m: ChatMessageItem) => m.role === 'user' && m.content === messageText && Date.now() - m.timestamp.getTime() < 5000)) {
+      setMessages((prev: ChatMessageItem[]) => [...prev, userMessage]);
     }
 
     setInput('');
@@ -97,8 +91,8 @@ export function AIConciergePreview() {
     try {
       // Get conversation history excluding initial greeting
       const history = messages
-        .filter((_, idx) => idx > 0)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .filter((_: ChatMessageItem, idx: number) => idx > 0)
+        .map((m: ChatMessageItem) => ({ role: m.role, content: m.content }));
 
       const res = await fetch('/api/ai/concierge', {
         method: 'POST',
@@ -122,11 +116,11 @@ export function AIConciergePreview() {
         action: data.action,
         cards: data.cards || [],
       };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev: ChatMessageItem[]) => [...prev, aiMessage]);
     } catch (err) {
       console.error('Concierge request error:', err);
       const errorMsg = 'AI Concierge temporarily unavailable.';
-      setMessages((prev) => [
+      setMessages((prev: ChatMessageItem[]) => [
         ...prev,
         { role: 'assistant', content: errorMsg, timestamp: new Date(), isError: true },
       ]);
@@ -137,7 +131,7 @@ export function AIConciergePreview() {
 
   const handleRetry = () => {
     // Find the last user message to retry
-    const userMsgs = messages.filter(m => m.role === 'user');
+    const userMsgs = messages.filter((m: ChatMessageItem) => m.role === 'user');
     if (userMsgs.length > 0) {
       const lastUserMsg = userMsgs[userMsgs.length - 1];
       sendMessage(lastUserMsg.content);
@@ -199,7 +193,7 @@ export function AIConciergePreview() {
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="h-80 overflow-y-auto p-4 space-y-4 scrollbar-hide scroll-smooth">
-        {messages.map((msg, i) => (
+        {messages.map((msg: ChatMessageItem, i: number) => (
           <div key={i} className={cn("flex flex-col", msg.role === 'user' ? 'items-end' : 'items-start')}>
             <div
               className={cn(
@@ -242,7 +236,7 @@ export function AIConciergePreview() {
             {msg.role === 'assistant' && msg.cards && msg.cards.length > 0 && (
               <div className="w-full max-w-[95%] mt-3 mb-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {msg.cards.map((card) => {
+                  {msg.cards.map((card: ConciergeCard) => {
                     const isInfra = card.venueType === 'infrastructure';
                     return (
                       <div
@@ -370,8 +364,8 @@ export function AIConciergePreview() {
           suppressHydrationWarning={true}
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && sendMessage()}
           disabled={loading}
           placeholder={mode === 'discovery' ? "Ask about venues, prices, comparison..." : "Ask for basic sport tips, timing advice..."}
           className="flex-1 min-w-0"

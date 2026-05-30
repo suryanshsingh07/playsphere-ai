@@ -39,6 +39,11 @@ async function getOrCreateAdmin() {
 }
 
 export async function GET() {
+  // Security: Prevent test suite from running in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Test suite disabled in production' }, { status: 403 });
+  }
+
   const logs: string[] = [];
   const log = (msg: string) => {
     console.log(`[TEST-SUITE] ${msg}`);
@@ -210,7 +215,7 @@ export async function GET() {
       proofUrl: 'https://google.com/drive/proof-document',
       notes: 'Test verification notes'
     });
-    
+
     let updatedInfra = await getInfrastructureById(testInfra.id);
     if (!updatedInfra || updatedInfra.ownershipStatus === 'pending') {
       throw new Error('Security rule error: Infrastructure was directly mutated during submission.');
@@ -249,7 +254,7 @@ export async function GET() {
     log('Step 4: Logging in back as Admin to approve ownership request...');
     await getOrCreateAdmin();
     await approveOwnershipRequest(requestId);
-    
+
     updatedInfra = await getInfrastructureById(testInfra.id);
     if (!updatedInfra || !updatedInfra.ownerLinked || !updatedInfra.bookable || updatedInfra.ownershipStatus !== 'approved' || updatedInfra.linkedOwnerId !== ownerUid) {
       throw new Error('Ownership approval failed to update infrastructure document correctly.');
@@ -325,7 +330,7 @@ export async function GET() {
     const bookingQuery = `I want to book Lohia Park Sports Area tomorrow at 11 AM`;
     await delay(2500);
     const bookRes = await handleConciergeRequest(bookingQuery, [], 'discovery');
-    
+
     log(`AI Concierge booking response: "${bookRes.response.slice(0, 100)}..."`);
     log(`AI Action Metadata: ${JSON.stringify(bookRes.action || null)}`);
 
@@ -354,7 +359,7 @@ export async function GET() {
 
     // 8. Phase 9 - Live Infrastructure Intelligence & Discovery Automation
     log('Step 8: Verifying Phase 9 Live Infrastructure Discovery & Intelligence...');
-    
+
     // Log in as Admin to allow writing to the infrastructure collection
     log('Logging in as Admin to run discovery scan...');
     await getOrCreateAdmin();
@@ -427,10 +432,10 @@ export async function GET() {
     await delay(2500);
     const conciergeRes = await handleConciergeRequest("football near Chinhat", []);
     log(`Concierge returned ${conciergeRes.cards.length} cards.`);
-    
+
     let lastType: 'marketplace' | 'infrastructure' | null = null;
     let rankOutofOrder = false;
-    
+
     conciergeRes.cards.forEach((card: any, idx: number) => {
       log(`Card ${idx + 1}: "${card.title}" [Type: ${card.venueType}] - Action: ${card.action}`);
       if (lastType === 'infrastructure' && card.venueType === 'marketplace') {
@@ -438,7 +443,7 @@ export async function GET() {
       }
       lastType = card.venueType;
     });
-    
+
     if (rankOutofOrder) {
       log('WARNING: AI Concierge ranked infrastructure ahead of verified marketplace venues, but let us double check matched scores.');
     }
@@ -461,7 +466,7 @@ export async function GET() {
     log('Step 9: Testing booking logic, past slot blocking, and lifecycle status...');
     log(`Logging player (${testPlayerEmail}) back in...`);
     await signInWithEmail(testPlayerEmail, testPassword);
-    
+
     // 1. Try past booking
     const yesterdayStr = new Date(Date.now() - 24 * 3600 * 1000).toISOString().split('T')[0];
     try {
@@ -533,7 +538,7 @@ export async function GET() {
 
     // 4. Test player-controlled cancelled booking deletion & active booking deletion block
     log('Checking booking history deletion permissions...');
-    
+
     // Create a cancelled booking for the player
     const cancelledBookingId = await createBooking({
       playerId: playerUid,
@@ -555,7 +560,7 @@ export async function GET() {
       ticketId: ''
     });
     log(`Temporary cancelled booking created: ${cancelledBookingId}`);
-    
+
     // Cancel the booking to set bookingStatus to cancelled
     await cancelBooking(cancelledBookingId);
     log('Player booking cancelled successfully.');
@@ -596,7 +601,7 @@ export async function GET() {
     // Delete created venue
     await deleteDoc(doc(db, 'venues', createdVenue.id));
     log(`Deleted temporary test venue: ${createdVenue.id}`);
-    
+
     // Reset infrastructure item
     const infraRef = doc(db, 'infrastructure', testInfra.id);
     await updateDoc(infraRef, {
@@ -660,8 +665,8 @@ export async function GET() {
     console.error('Test suite error:', error);
     try {
       await logOut();
-    } catch {}
-    
+    } catch { }
+
     // Attempt Admin Login for Cleanup on Error
     try {
       log('Attempting emergency Admin cleanup after error...');

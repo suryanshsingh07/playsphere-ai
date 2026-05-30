@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runInfrastructureDiscovery } from '@/backend/ai/infrastructure-discovery';
 import { adminAuth } from '@/backend/firebase/admin';
 
+// Force Node.js runtime as firebase-admin is incompatible with Edge Runtime
+export const runtime = 'nodejs';
+
 async function fetchDoc(projectId: string, collection: string, docId: string, token: string) {
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}`;
   const res = await fetch(url, {
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
     // 2. Validate Admin role/email whitelist
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
       .split(',')
-      .map((e) => e.trim().toLowerCase())
+      .map((e: string) => e.trim().toLowerCase())
       .filter(Boolean);
 
     const isEmailAdmin = adminEmails.includes(adminEmail.toLowerCase());
@@ -161,7 +164,7 @@ export async function POST(req: NextRequest) {
           lastScanAt: { timestampValue: new Date().toISOString() }
         }, token);
         console.log('[DISCOVERY] Lock released.');
-      } catch (releaseError) {
+      } catch (releaseError: any) {
         console.error('[DISCOVERY] Failed to release lock:', releaseError);
       }
     }

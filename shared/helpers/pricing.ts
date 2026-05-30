@@ -150,7 +150,8 @@ export function generateTimeSlots(
  */
 export function isSlotInPast(dateStr: string, slotStr: string, referenceTime?: Date): boolean {
   try {
-    const now = referenceTime || new Date();
+    // Force comparison using Asia/Kolkata time to align with Lucknow local time on Vercel servers
+    const now = referenceTime || new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
     // YYYY-MM-DD in local time
     const year = now.getFullYear();

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -18,12 +22,19 @@
         "name": "next"
       }
     ],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/backend/*": ["../backend/*"],
-      "@/shared/*": ["../shared/*"],
-      "firebase/*": ["./node_modules/firebase/*"],
-      "firebase": ["./node_modules/firebase"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/backend/*": [
+        "../backend/*"
+      ],
+      "@/shared/*": [
+        "../shared/*"
+      ]
     }
   },
   "include": [
@@ -38,5 +49,7 @@
     "../shared/**/*.ts",
     "../shared/**/*.tsx"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -8,7 +8,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check for auth token in cookies (Firebase sets this)
-  const authToken = request.cookies.get('auth-token')?.value;
+  // NOTE: Ensure your client-side login code sets this cookie via document.cookie
+  // or an API route. Without this cookie, Middleware cannot verify auth state.
+  const session = request.cookies.get('auth-token');
+  const authToken = session?.value;
 
   const isProtectedRoute = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 
