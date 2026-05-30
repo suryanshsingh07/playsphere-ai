@@ -57,24 +57,20 @@ function MapSkeleton({ message = 'Loading realtime venue mapping and infrastruct
             transform: translateX(100%);
           }
         }
+        .neo-grid-bg {
+          background-image: radial-gradient(circle, #ffffff 1.5px, transparent 1.5px);
+          background-size: 24px 24px;
+        }
+        .animated-shimmer {
+          animation: shimmer 2.5s infinite linear;
+        }
       `}</style>
       
       {/* Neo-brutalist grid background */}
-      <div 
-        className="absolute inset-0 opacity-5 pointer-events-none" 
-        style={{ 
-          backgroundImage: 'radial-gradient(circle, #ffffff 1.5px, transparent 1.5px)', 
-          backgroundSize: '24px 24px' 
-        }} 
-      />
+      <div className="absolute inset-0 opacity-5 pointer-events-none neo-grid-bg" />
       
       {/* Animated Shimmer Overlay */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent pointer-events-none"
-        style={{
-          animation: 'shimmer 2.5s infinite linear',
-        }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent pointer-events-none animated-shimmer" />
 
       <div className="text-center z-10">
         {/* Animated map pin */}
