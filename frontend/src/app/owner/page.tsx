@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Building2, Plus, Calendar, BarChart3, Clock, Loader2, Trash2, Pencil, Eye, EyeOff, Ticket, Users, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
 import {
@@ -13,12 +13,15 @@ import {
   approvePayment,
   rejectPayment,
   updateUserProfile,
+  subscribeOwnerOwnershipRequests,
+  submitOwnershipRequest,
+  getInfrastructureByVenueCode,
 } from '@/backend/firebase/firestore';
-import { Venue, Booking } from '@/shared/types';
+import { Venue, Booking, OwnershipRequest } from '@/shared/types';
 import { formatCurrency, formatDate, getSportEmoji, cn } from '@/shared/helpers/utils';
 import { VenueForm, VenueFormData } from '@/components/owner/VenueForm';
 
-type OwnerTab = 'overview' | 'venues' | 'add' | 'bookings' | 'analytics';
+type OwnerTab = 'overview' | 'venues' | 'verify' | 'bookings' | 'analytics';
 
 const getProgressWidthClass = (pct: number) => {
   const rounded = Math.round(pct / 10) * 10;
@@ -40,9 +43,20 @@ const getProgressWidthClass = (pct: number) => {
 export default function OwnerDashboardPage() {
   const { user, profile, isApprovedOwner, isOwner } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<OwnerTab>('overview');
   const [venues, setVenues] = useState<Venue[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+
+  // Ownership request states
+  const [ownerRequests, setOwnerRequests] = useState<OwnershipRequest[]>([]);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationPhone, setVerificationPhone] = useState('');
+  const [verificationProofUrl, setVerificationProofUrl] = useState('');
+  const [verificationNotes, setVerificationNotes] = useState('');
+  const [submittingVerification, setSubmittingVerification] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
+  const [verificationSuccess, setVerificationSuccess] = useState('');
   const [venuesLoading, setVenuesLoading] = useState(true);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -136,6 +150,87 @@ export default function OwnerDashboardPage() {
     const unsub = subscribeOwnerBookings(user.uid, setBookings);
     return () => unsub();
   }, [user]);
+
+  // Subscribe to owner's ownership requests in real-time
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeOwnerOwnershipRequests(user.uid, setOwnerRequests);
+    return () => unsub();
+  }, [user]);
+
+  // Handle URL query parameters for prefilling verification venue code
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    const tabParam = searchParams.get('tab');
+    if (codeParam) {
+      setVerificationCode(codeParam);
+    }
+    if (tabParam === 'verify') {
+      setTab('verify');
+    }
+  }, [searchParams]);
+
+  const handleSubmitVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !profile) return;
+    if (!verificationCode.trim() || !verificationPhone.trim() || !verificationProofUrl.trim()) {
+      setVerificationError('Please fill out all required fields.');
+      return;
+    }
+
+    setSubmittingVerification(true);
+    setVerificationError('');
+    setVerificationSuccess('');
+
+    try {
+      // 1. Verify that the infrastructure record exists for the code
+      const infra = await getInfrastructureByVenueCode(verificationCode.trim());
+      if (!infra) {
+        setVerificationError('Invalid Venue Code. Please verify and try again.');
+        setSubmittingVerification(false);
+        return;
+      }
+
+      // 2. Check if a request already exists for this code (approved or pending)
+      const existing = ownerRequests.find((r) => r.venueCode === verificationCode.trim());
+      if (existing) {
+        if (existing.status === 'approved') {
+          setVerificationError('You have already been verified as the owner of this venue.');
+        } else if (existing.status === 'pending') {
+          setVerificationError('A verification request is already pending for this venue.');
+        } else {
+          setVerificationError('A previous request was rejected. Please contact support.');
+        }
+        setSubmittingVerification(false);
+        return;
+      }
+
+      // 3. Submit request
+      await submitOwnershipRequest({
+        venueCode: verificationCode.trim(),
+        infrastructureId: infra.id,
+        infrastructureName: infra.name,
+        ownerId: user.uid,
+        ownerName: profile.displayName || 'Venue Owner',
+        ownerEmail: user.email || '',
+        phone: verificationPhone.trim(),
+        proofType: 'URL',
+        proofUrl: verificationProofUrl.trim(),
+        notes: verificationNotes.trim(),
+      });
+
+      setVerificationSuccess('🎉 Ownership verification request submitted successfully! Awaiting Admin verification.');
+      setVerificationCode('');
+      setVerificationPhone('');
+      setVerificationProofUrl('');
+      setVerificationNotes('');
+    } catch (err: any) {
+      console.error('Error submitting ownership request:', err);
+      setVerificationError(err.message || 'Failed to submit ownership request.');
+    } finally {
+      setSubmittingVerification(false);
+    }
+  };
 
   const handleAddVenue = async (formData: VenueFormData) => {
     if (!user) return;
@@ -237,7 +332,7 @@ export default function OwnerDashboardPage() {
   const TABS: { id: OwnerTab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'venues', label: 'My Venues', icon: <Building2 className="w-4 h-4" /> },
-    { id: 'add', label: 'Add Venue', icon: <Plus className="w-4 h-4" /> },
+    { id: 'verify', label: 'Add / Verify Venue', icon: <Plus className="w-4 h-4" /> },
     { id: 'bookings', label: 'Bookings', icon: <Calendar className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <TrendingUp className="w-4 h-4" /> },
   ];
@@ -416,7 +511,7 @@ export default function OwnerDashboardPage() {
                 <div className="text-5xl mb-4">🏢</div>
                 <h3 className="font-display text-xl font-bold text-white mb-2">No venues yet</h3>
                 <p className="text-slate-400 mb-6">Add your first sports venue to start receiving bookings.</p>
-                <button onClick={() => setTab('add')} className="btn-primary">
+                <button onClick={() => setTab('verify')} className="btn-primary">
                   <Plus className="w-4 h-4" /> Add Your First Venue
                 </button>
               </div>
@@ -490,15 +585,145 @@ export default function OwnerDashboardPage() {
           </div>
         )}
 
-        {/* ── TAB: ADD VENUE ──────────────────────────────────── */}
-        {tab === 'add' && (
-          <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
-            <h2 className="font-display font-bold text-white text-xl mb-6">Add New Venue</h2>
-            <VenueForm
-              mode="add"
-              onSubmit={handleAddVenue as Parameters<typeof VenueForm>[0]['onSubmit']}
-              onCancel={() => setTab('venues')}
-            />
+        {/* ── TAB: VERIFY / ADD VENUE ─────────────────────────── */}
+        {tab === 'verify' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Private Listing Form */}
+            <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000] h-fit">
+              <h2 className="font-display font-bold text-white text-xl mb-1">Create New Venue Listing</h2>
+              <p className="text-slate-400 text-xs mb-6">List a new private sports facility to receive bookings.</p>
+              <VenueForm
+                mode="add"
+                onSubmit={handleAddVenue as Parameters<typeof VenueForm>[0]['onSubmit']}
+                onCancel={() => setTab('venues')}
+              />
+            </div>
+
+            {/* Mapped Infrastructure Verification Form */}
+            <div className="space-y-6">
+              <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
+                <h2 className="font-display font-bold text-white text-xl mb-1">Verify Existing Venue Ownership</h2>
+                <p className="text-slate-400 text-xs mb-6">Enter the permanent venue code of a mapped sports infrastructure facility to verify ownership.</p>
+                
+                {verificationError && (
+                  <div className="bg-rose-950/40 border border-rose-500/30 text-rose-300 px-4 py-2.5 rounded-md text-xs font-bold mb-4">
+                    ⚠️ {verificationError}
+                  </div>
+                )}
+                {verificationSuccess && (
+                  <div className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 px-4 py-2.5 rounded-md text-xs font-bold mb-4">
+                    {verificationSuccess}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitVerification} className="space-y-4">
+                  <div>
+                    <label htmlFor="verify-venue-code" className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">
+                      Venue Code *
+                    </label>
+                    <input
+                      id="verify-venue-code"
+                      type="text"
+                      placeholder="e.g. PS-LKO-BAD-1043"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="verify-phone" className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">
+                      Phone Number *
+                    </label>
+                    <input
+                      id="verify-phone"
+                      type="tel"
+                      placeholder="e.g. +91 98765 43210"
+                      value={verificationPhone}
+                      onChange={(e) => setVerificationPhone(e.target.value)}
+                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="verify-proof" className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">
+                      Proof Document URL *
+                    </label>
+                    <input
+                      id="verify-proof"
+                      type="url"
+                      placeholder="e.g. Google Drive link to electricity bill or tax receipt"
+                      value={verificationProofUrl}
+                      onChange={(e) => setVerificationProofUrl(e.target.value)}
+                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="verify-notes" className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      id="verify-notes"
+                      rows={3}
+                      placeholder="Specify your association (e.g. Owner, Lessee, Manager)"
+                      value={verificationNotes}
+                      onChange={(e) => setVerificationNotes(e.target.value)}
+                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submittingVerification}
+                    className="w-full btn-primary py-2.5 text-xs font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                  >
+                    {submittingVerification ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting Request...
+                      </>
+                    ) : (
+                      'Submit Ownership Verification Request'
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Your Requests List */}
+              <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
+                <h3 className="font-display font-bold text-white text-base mb-4">Ownership Verification Requests</h3>
+                {ownerRequests.length === 0 ? (
+                  <p className="text-slate-400 text-xs">No verification requests submitted yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {ownerRequests.map((req) => (
+                      <div key={req.id} className="bg-slate-950/40 border border-black/80 rounded p-3 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs text-cyan-400 font-bold">{req.venueCode}</span>
+                          <span className={cn(
+                            'text-[10px] font-black px-2 py-0.5 rounded border border-black',
+                            req.status === 'approved' && 'bg-emerald-400 text-black',
+                            req.status === 'pending' && 'bg-amber-400 text-black',
+                            req.status === 'rejected' && 'bg-rose-500 text-white'
+                          )}>
+                            {req.status === 'approved' && 'Ownership Verified'}
+                            {req.status === 'pending' && 'Verification Pending'}
+                            {req.status === 'rejected' && 'Verification Rejected'}
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold text-white">{req.infrastructureName}</div>
+                        <div className="text-[10px] text-slate-500">
+                          Submitted on {req.createdAt instanceof Date ? req.createdAt.toLocaleDateString() : new Date((req.createdAt as any).seconds * 1000).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

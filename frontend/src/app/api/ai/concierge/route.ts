@@ -9,8 +9,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    const response = await handleConciergeRequest(message, history, mode);
-    return NextResponse.json({ response });
+    const result = await handleConciergeRequest(message, history, mode);
+    if (typeof result === 'string') {
+      return NextResponse.json({ response: result });
+    }
+    return NextResponse.json(result);
   } catch (error: unknown) {
     console.error('LLM API error:', error);
     return NextResponse.json(

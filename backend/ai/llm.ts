@@ -21,40 +21,56 @@ export async function callLLM(messages: ChatMessage[], options?: LLMOptions): Pr
     throw new Error('LLM_API_URL or LLM_API_KEY is not configured in environment variables.');
   }
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  const maxRetries = 3;
+  let attempt = 0;
 
-    const response = await fetch(`${apiUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: options?.temperature ?? 0.7,
-        max_tokens: options?.max_tokens ?? 1024,
-      }),
-      signal: controller.signal,
-    });
+  while (attempt < maxRetries) {
+    attempt++;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-    clearTimeout(timeoutId);
+      const response = await fetch(`${apiUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: options?.temperature ?? 0.7,
+          max_tokens: options?.max_tokens ?? 1024,
+        }),
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`LLM API Error (${response.status}):`, errorText);
-      throw new Error(`LLM API failed with status ${response.status}`);
+      clearTimeout(timeoutId);
+
+      if (response.status === 429 && attempt < maxRetries) {
+        console.warn(`[callLLM] Rate limited (429). Retrying attempt ${attempt + 1}/${maxRetries} after 1.5s...`);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`LLM API Error (${response.status}):`, errorText);
+        throw new Error(`LLM API failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      if (attempt >= maxRetries) {
+        console.error('Error calling LLM after max retries:', error);
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          throw new Error('LLM request timed out after 30 seconds.');
+        }
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('Error calling LLM:', error);
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('LLM request timed out after 30 seconds.');
-    }
-    throw error;
   }
+  throw new Error('LLM API failed after maximum retries');
 }

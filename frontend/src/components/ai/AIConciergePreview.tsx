@@ -1,14 +1,36 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { Bot, Send, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/shared/helpers/utils';
+
+interface ConciergeCard {
+  venueId: string;
+  title: string;
+  sport: string;
+  area: string;
+  imageUrl?: string;
+  rating?: number;
+  price?: number;
+  venueType: 'marketplace' | 'infrastructure';
+  venueCode?: string;
+  action: 'book' | 'view' | 'verify';
+}
 
 interface ChatMessageItem {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   isError?: boolean;
+  action?: {
+    type: 'book';
+    venueId: string;
+    venueName: string;
+    date: string;
+    slot: string;
+  };
+  cards?: ConciergeCard[];
 }
 
 const DISCOVERY_GREETING = "Hi! I'm PlaySphere AI (Discovery Mode) 🏆 I can help you find and compare sports venues in Lucknow. Ask me something like:\n\n• \"Beginner badminton near Gomti Nagar under ₹300\"\n• \"Football turf for 10 friends this weekend\"\n• \"Cheapest swimming pool near Hazratganj\"";
@@ -95,8 +117,10 @@ export function AIConciergePreview() {
 
       const aiMessage: ChatMessageItem = {
         role: 'assistant',
-        content: data.response || 'Something went wrong. Please try again.',
+        content: data.text || data.response || 'Something went wrong. Please try again.',
         timestamp: new Date(),
+        action: data.action,
+        cards: data.cards || [],
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
@@ -152,6 +176,7 @@ export function AIConciergePreview() {
       {/* Mode Selector Toggle */}
       <div className="flex border-b-2 border-black p-2 bg-[#0d111d] gap-2">
         <button
+          suppressHydrationWarning={true}
           onClick={() => setMode('discovery')}
           className={cn(
             "flex-1 text-center py-1.5 text-xs font-black rounded border-2 border-black transition-all shadow-[2px_2px_0px_#000] cursor-pointer",
@@ -161,6 +186,7 @@ export function AIConciergePreview() {
           🔍 Discovery Mode
         </button>
         <button
+          suppressHydrationWarning={true}
           onClick={() => setMode('guidance')}
           className={cn(
             "flex-1 text-center py-1.5 text-xs font-black rounded border-2 border-black transition-all shadow-[2px_2px_0px_#000] cursor-pointer",
@@ -174,7 +200,7 @@ export function AIConciergePreview() {
       {/* Messages */}
       <div ref={messagesContainerRef} className="h-80 overflow-y-auto p-4 space-y-4 scrollbar-hide scroll-smooth">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={i} className={cn("flex flex-col", msg.role === 'user' ? 'items-end' : 'items-start')}>
             <div
               className={cn(
                 "max-w-[85%] px-4 py-3 text-sm leading-relaxed",
@@ -186,8 +212,22 @@ export function AIConciergePreview() {
               )}
             >
               <pre className="font-sans whitespace-pre-wrap">{msg.content}</pre>
+              {msg.action && msg.action.type === 'book' && (
+                <div className="mt-3 pt-3 border-t border-black/20">
+                  <span className="text-[10px] text-slate-400 block mb-1.5 leading-normal">
+                    Note: PlaySphere AI does not charge cards or reserve slots automatically. This pre-fills the booking details for your confirmation.
+                  </span>
+                  <Link
+                    href={`/venues/${msg.action.venueId}?date=${msg.action.date}&slot=${encodeURIComponent(msg.action.slot)}`}
+                    className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs px-4 py-2.5 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all no-underline"
+                  >
+                    ⚡ Continue Booking
+                  </Link>
+                </div>
+              )}
               {msg.isError && (
                 <button
+                  suppressHydrationWarning={true}
                   onClick={handleRetry}
                   disabled={loading}
                   className="mt-2 flex items-center gap-1.5 text-xs font-bold bg-rose-500 text-black border border-black px-2 py-1 rounded shadow-[1px_1px_0px_#000] hover:bg-rose-400 active:translate-y-0.5 transition-all cursor-pointer"
@@ -197,6 +237,105 @@ export function AIConciergePreview() {
                 </button>
               )}
             </div>
+
+            {/* AI Venue Card Recommendation System */}
+            {msg.role === 'assistant' && msg.cards && msg.cards.length > 0 && (
+              <div className="w-full max-w-[95%] mt-3 mb-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {msg.cards.map((card) => {
+                    const isInfra = card.venueType === 'infrastructure';
+                    return (
+                      <div
+                        key={card.venueId}
+                        className="bg-[#0b0e17]/95 border-2 border-black rounded-lg overflow-hidden shadow-[3px_3px_0px_#000] flex flex-col hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000] transition-all"
+                      >
+                        {/* Image */}
+                        <div className="relative h-28 overflow-hidden bg-slate-900 border-b border-black">
+                          {card.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={card.imageUrl}
+                              alt={card.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl bg-slate-950">
+                              🏢
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                          <span className="absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-black bg-cyan-400 text-black">
+                            {card.sport}
+                          </span>
+                          <span className={cn(
+                            "absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-black",
+                            isInfra ? "bg-slate-700 text-slate-200" : "bg-emerald-500 text-black"
+                          )}>
+                            {isInfra ? 'Mapped' : 'Bookable'}
+                          </span>
+                        </div>
+
+                        {/* Details */}
+                        <div className="p-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h4 className="font-extrabold text-white text-xs mb-1 line-clamp-1">
+                              {card.title}
+                            </h4>
+                            <p className="text-slate-400 text-[10px] mb-2 flex items-center gap-0.5">
+                              <span>📍</span> {card.area}
+                            </p>
+
+                            {!isInfra ? (
+                              <div className="flex justify-between items-center mb-2.5">
+                                <span className="text-cyan-400 font-extrabold text-xs">
+                                  ₹{card.price}/hr
+                                </span>
+                                {card.rating !== undefined && (
+                                  <span className="text-[#fbbf24] text-[10px] font-bold">
+                                    ★ {card.rating}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="bg-slate-900/90 border border-slate-800 px-1.5 py-1 rounded text-[9px] font-mono text-slate-400 mb-2.5 overflow-hidden text-ellipsis whitespace-nowrap">
+                                Code: {card.venueCode || 'N/A'}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="space-y-1 mt-auto">
+                            {!isInfra ? (
+                              <Link
+                                href={`/venues/${card.venueId}`}
+                                className="block w-full text-center bg-cyan-400 hover:bg-cyan-300 text-black font-black text-[10px] py-1.5 rounded border border-black shadow-[1.5px_1.5px_0px_#000] no-underline transition-all hover:translate-y-[-0.5px] cursor-pointer"
+                              >
+                                ⚡ Book Now
+                              </Link>
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                <Link
+                                  href={`/venues/${card.venueId}?infra=true`}
+                                  className="block w-full text-center bg-slate-800 hover:bg-slate-750 text-white font-bold text-[10px] py-1 rounded border border-black shadow-[1.5px_1.5px_0px_#000] no-underline transition-all cursor-pointer"
+                                >
+                                  View Details
+                                </Link>
+                                <Link
+                                  href={`/owner?tab=verify&code=${card.venueCode}`}
+                                  className="block w-full text-center bg-yellow-400 hover:bg-yellow-300 text-black font-black text-[10px] py-1 rounded border border-black shadow-[1.5px_1.5px_0px_#000] no-underline transition-all cursor-pointer"
+                                >
+                                  Verify Ownership
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ))}
         {loading && (
@@ -214,6 +353,7 @@ export function AIConciergePreview() {
       <div className="px-4 pb-3 flex flex-wrap gap-2">
         {QUICK_PROMPTS.map((prompt) => (
           <button
+            suppressHydrationWarning={true}
             key={prompt}
             onClick={() => sendMessage(prompt)}
             disabled={loading}
@@ -227,6 +367,7 @@ export function AIConciergePreview() {
       {/* Input */}
       <div className="flex items-center gap-3 p-4 border-t-2 border-black">
         <input
+          suppressHydrationWarning={true}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -236,6 +377,7 @@ export function AIConciergePreview() {
           className="flex-1 min-w-0"
         />
         <button
+          suppressHydrationWarning={true}
           onClick={() => sendMessage()}
           disabled={!input.trim() || loading}
           className="w-11 h-11 rounded-md bg-purple-600 text-white font-bold border-2 border-black flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#000] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all flex-shrink-0 cursor-pointer"

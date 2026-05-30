@@ -3,7 +3,7 @@ import { Timestamp } from 'firebase/firestore';
 export type Sport = 'badminton' | 'football' | 'swimming' | 'kabaddi';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'all';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
-export type PaymentStatus = 'payment_pending' | 'verification_pending' | 'paid' | 'rejected';
+export type PaymentStatus = 'payment_pending' | 'verification_pending' | 'paid' | 'rejected' | 'refund_pending';
 export type UserRole = 'player' | 'owner' | 'admin';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 export type VenueSource = 'seed' | 'owner';
@@ -12,6 +12,15 @@ export type PriceSlot = 'morning' | 'afternoon' | 'evening';
 export interface Coordinates {
   lat: number;
   lng: number;
+}
+
+export interface Landmark {
+  id: string;
+  name: string;
+  area: string;
+  latitude: number;
+  longitude: number;
+  sportsRelevance: string[];
 }
 
 export interface PeakPricing {
@@ -57,7 +66,13 @@ export interface Venue {
   sportType?: string;
   location?: string;
   status?: 'active' | 'inactive';
+  venueCode?: string;
+  ownershipStatus?: 'pending' | 'approved' | 'rejected' | null;
+  ownerLinked?: boolean;
+  linkedOwnerId?: string | null;
+  ownershipVerifiedAt?: Timestamp | Date | null;
 }
+
 
 export interface Booking {
   id: string;
@@ -124,3 +139,56 @@ export interface TimeSlot {
   priceMultiplier: number;
   available: boolean;
 }
+
+export interface Infrastructure {
+  id: string;
+  name: string;
+  sport: Sport | string;
+  area: string;
+  coordinates: Coordinates;
+  source: string;
+  verified: boolean;
+  bookable: boolean;
+  ownerLinked: boolean;
+  ownerId?: string | null;
+  infrastructureType: 'government' | 'public' | 'akhara' | 'park' | 'private' | string;
+  imageUrl?: string;
+  description?: string;
+  rating?: number;
+  reviewCount?: number;
+  amenities?: string[];
+  venueCode?: string;
+  ownershipStatus?: 'pending' | 'approved' | 'rejected' | null;
+  linkedOwnerId?: string | null;
+  ownershipVerifiedAt?: Timestamp | Date | null;
+}
+
+export interface OwnershipRequest {
+  id: string;
+  venueCode: string;
+  infrastructureId: string;
+  infrastructureName: string;
+  ownerId: string;
+  ownerName: string;
+  ownerEmail: string;
+  phone: string;
+  proofType: string;
+  proofUrl: string;
+  notes: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Timestamp | Date;
+}
+
+export interface ConciergeCard {
+  venueId: string;
+  title: string;
+  sport: string;
+  area: string;
+  imageUrl?: string;
+  rating?: number;
+  price?: number;
+  venueType: 'marketplace' | 'infrastructure';
+  venueCode?: string;
+  action: 'book' | 'view' | 'verify';
+}
+

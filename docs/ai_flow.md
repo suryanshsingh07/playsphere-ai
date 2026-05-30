@@ -37,6 +37,7 @@ The Concierge answers general queries about sports in Lucknow, filters venues by
   * Cannot recommend any venue not present in the grounding database (strict anti-hallucination constraint).
   * Automatically calculates pricing modifiers: Afternoon (11 AM - 4 PM) saves 15%, evening (5 PM - 10 PM) is 30% more expensive.
   * Ensures formatting has a clear structure: Acknowledgment, recommendations (1-3 max), pricing insights, next step.
+  * Supports **AI-assisted booking orchestration** (agentic booking prefill): When a player requests to book a slot, the AI parses the venue and time, verifies availability, and triggers a visual prefilled booking ticket card so the user can easily review and finalize manually.
 
 ---
 

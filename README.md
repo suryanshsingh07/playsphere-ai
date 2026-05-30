@@ -34,7 +34,7 @@ Traditional sports venue discovery in Lucknow is highly fragmented. Players stru
 
 *   🔍 **Venue Discovery**: Fast search and filtering by sport type, area, price range, availability, and skill level.
 *   🗺️ **Google Maps Integration**: Visual venue pinning, cooperative scrolling, and instant location lookup on a responsive viewport.
-*   🤖 **AI Concierge**: Dual-mode conversational assistant for venue recommendations and game rules.
+*   🤖 **AI Concierge**: Dual-mode conversational assistant for venue recommendations and game rules, supporting AI-assisted booking orchestration (agentic booking prefill) to streamline player reservations.
 *   ⚡ **Real-Time Venue Sync**: Venues disappear or reappear dynamically based on availability toggles without requiring a page reload.
 *   📅 **Smart Booking Management**: Secure, non-overlapping slot reservations calculated via morning, afternoon, and evening pricing tiers.
 *   💸 **Payment Verification**: Manual UTR submission and owner-side instant validation.
@@ -192,6 +192,8 @@ LLM_MODEL=llama3-8b-8192
 ---
 
 ## 🔒 Security Notes
+*   **Hardened Infrastructure Discovery API**: The `/api/admin/discover-infrastructure` route requires token-based Admin authentication via Firebase client ID token verification on the server side against the `NEXT_PUBLIC_ADMIN_EMAILS` list and roles schema.
+*   **Scan Lock & Cooldown**: Only 1 active discovery scan can execute globally. Firestore state locks prevent concurrent runs, and a strict 5-minute cooldown prevents endpoint spamming.
 *   **Firestore Rules**: Direct collections operations are guarded by `firestore.rules` preventing data manipulation. Only owners can approve bookings, and users cannot modify profiles or booking records of other players.
 *   **Secrets Isolation**: All secrets are securely isolated in `.env.local` which is strictly ignored by Git patterns.
 

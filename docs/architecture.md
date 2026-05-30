@@ -41,7 +41,7 @@ graph TD
 
 ### 2. Backend Layer
 * **API Handlers (`frontend/src/app/api`)**: Acts as proxy layers. They intercept HTTP requests, validate request bodies, and delegate the business logic to the backend services.
-* **AI Services (`backend/ai`)**: Performs prompting, prompt engineering, and talks to the OpenAI-compatible hosted LLM API.
+* **AI Services (`backend/ai`)**: Performs prompting, prompt engineering, and talks to the OpenAI-compatible hosted LLM API. Houses the AI-assisted booking orchestration logic which pre-fills player booking parameters dynamically before client-side review.
 * **Firebase Services (`backend/firebase`)**: Directly queries Firestore and performs authentication logic.
 
 ### 3. Shared Layer

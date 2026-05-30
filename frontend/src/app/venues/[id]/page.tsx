@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Star, Clock, ArrowLeft, Calendar, Check, Loader2, Shield, Zap, Ticket } from 'lucide-react';
+import { MapPin, Star, Clock, ArrowLeft, Calendar, Check, Loader2, Shield, Zap, Ticket, ShieldCheck } from 'lucide-react';
 import { Venue } from '@/shared/types';
 import { formatCurrency, getSportEmoji, getSportColor, getSkillBadgeColor, cn } from '@/shared/helpers/utils';
 import { generateTimeSlots } from '@/shared/helpers/pricing';
 import { useAuth } from '@/contexts/AuthProvider';
-import { createBooking, getVenueBookings, checkSlotAvailability, getVenueById } from '@/backend/firebase/firestore';
+import { createBooking, getVenueBookings, checkSlotAvailability, getVenueById, getInfrastructureById } from '@/backend/firebase/firestore';
 
 const MIN_DATE = new Date().toISOString().split('T')[0];
 const MAX_DATE = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -16,12 +16,14 @@ const MAX_DATE = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().s
 export default function VenueDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const { user, profile } = useAuth();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [venueLoading, setVenueLoading] = useState(true);
+  const [isInfra, setIsInfra] = useState(searchParams.get('infra') === 'true');
 
-  const [selectedDate, setSelectedDate] = useState(MIN_DATE);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(searchParams.get('date') || MIN_DATE);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(searchParams.get('slot') || null);
   const [selectedPrice, setSelectedPrice] = useState(0);
   const [slots, setSlots] = useState<ReturnType<typeof generateTimeSlots>>([]);
   const [booking, setBooking] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -31,31 +33,87 @@ export default function VenueDetailPage() {
     let active = true;
     Promise.resolve().then(() => {
       if (active) setVenueLoading(true);
-      getVenueById(id)
-        .then((dbVenue) => {
-          if (!active) return;
-          setVenue(dbVenue || null);
-        })
-        .catch(() => {
-          if (!active) return;
-          setVenue(null);
-        })
-        .finally(() => {
+      
+      const loadData = async () => {
+        try {
+          if (isInfra) {
+            const dbInfra = await getInfrastructureById(id);
+            if (active && dbInfra) {
+              const mappedVenue: Venue = {
+                ...dbInfra,
+                sport: dbInfra.sport as any,
+                price: 0,
+                rating: dbInfra.rating || 0,
+                reviewCount: dbInfra.reviewCount || 0,
+                amenities: dbInfra.amenities || [],
+                skillLevel: 'all' as const,
+                timings: { open: '00:00', close: '00:00' },
+                description: dbInfra.description || '',
+                imageUrl: dbInfra.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800',
+                category: 'infrastructure',
+                available: false,
+                ownerId: 'system',
+                source: 'seed' as const,
+                approvalStatus: 'approved' as const,
+                address: `${dbInfra.name}, ${dbInfra.area}`,
+                peakPricing: { morning: 0, afternoon: 0, evening: 0 },
+              };
+              setVenue(mappedVenue);
+            } else {
+              setVenue(null);
+            }
+          } else {
+            const dbVenue = await getVenueById(id);
+            if (active) {
+              if (dbVenue) {
+                setVenue(dbVenue);
+              } else {
+                const dbInfra = await getInfrastructureById(id);
+                if (dbInfra) {
+                  setIsInfra(true);
+                  const mappedVenue: Venue = {
+                    ...dbInfra,
+                    sport: dbInfra.sport as any,
+                    price: 0,
+                    rating: dbInfra.rating || 0,
+                    reviewCount: dbInfra.reviewCount || 0,
+                    amenities: dbInfra.amenities || [],
+                    skillLevel: 'all' as const,
+                    timings: { open: '00:00', close: '00:00' },
+                    description: dbInfra.description || '',
+                    imageUrl: dbInfra.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800',
+                    category: 'infrastructure',
+                    available: false,
+                    ownerId: 'system',
+                    source: 'seed' as const,
+                    approvalStatus: 'approved' as const,
+                    address: `${dbInfra.name}, ${dbInfra.area}`,
+                    peakPricing: { morning: 0, afternoon: 0, evening: 0 },
+                  };
+                  setVenue(mappedVenue);
+                } else {
+                  setVenue(null);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error loading venue detailed page:', err);
+          if (active) setVenue(null);
+        } finally {
           if (active) setVenueLoading(false);
-        });
+        }
+      };
+      loadData();
     });
     return () => { active = false; };
-  }, [id]);
+  }, [id, isInfra]);
 
   useEffect(() => {
     let active = true;
-    if (venue) {
+    if (venue && !isInfra) {
       const generatedSlots = generateTimeSlots(venue.timings.open, venue.timings.close, venue.price, selectedDate);
       
-      Promise.resolve().then(() => {
-        if (active) setSelectedSlot(null);
-      });
-
       getVenueBookings(venue.id, selectedDate)
         .then((bookings) => {
           if (!active) return;
@@ -65,6 +123,13 @@ export default function VenueDetailPage() {
             available: s.available && !bookedSlots.has(s.label),
           }));
           setSlots(updatedSlots);
+
+          if (selectedSlot) {
+            const matched = updatedSlots.find((s) => s.label === selectedSlot);
+            if (matched) {
+              setSelectedPrice(matched.finalPrice);
+            }
+          }
         })
         .catch((err) => {
           console.error('Error fetching bookings:', err);
@@ -72,7 +137,20 @@ export default function VenueDetailPage() {
         });
     }
     return () => { active = false; };
-  }, [venue, selectedDate]);
+  }, [venue, selectedDate, isInfra, selectedSlot]);
+
+  const handleVerify = () => {
+    if (!user) {
+      alert('You must be logged in to verify ownership.');
+      router.push('/auth/login');
+      return;
+    }
+    if (profile?.role !== 'owner') {
+      alert('You must be registered as a Venue Owner to verify ownership of this facility.');
+      return;
+    }
+    router.push(`/owner?tab=verify&code=${venue?.venueCode}`);
+  };
 
   const handleBook = async () => {
     if (!user || !venue || !selectedSlot) return;
@@ -154,9 +232,15 @@ export default function VenueDetailPage() {
             <ArrowLeft className="w-4 h-4" /> Back to Venues
           </Link>
           <div>
-            <div className={cn("inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-md mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black", sportColor)}>
-              {getSportEmoji(venue.sport)} {venue.sport.charAt(0).toUpperCase() + venue.sport.slice(1)}
-            </div>
+            {isInfra ? (
+              <div className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-md mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black bg-slate-900 text-slate-300 font-bold">
+                🏛️ MAPPED INFRASTRUCTURE
+              </div>
+            ) : (
+              <div className={cn("inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-md mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black", sportColor)}>
+                {getSportEmoji(venue.sport)} {venue.sport.charAt(0).toUpperCase() + venue.sport.slice(1)}
+              </div>
+            )}
           </div>
           <h1 className="font-display text-3xl md:text-5xl font-bold text-white tracking-tight [text-shadow:2px_2px_0px_#000]">{venue.name}</h1>
           <div className="flex items-center gap-3 mt-2 text-slate-300 text-sm">
@@ -171,36 +255,68 @@ export default function VenueDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Quick Stats */}
             <div className="glass rounded-lg p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center border-r-2 border-black/30 last:border-0">
-                <div className="flex items-center justify-center gap-1 text-amber-400 mb-1">
-                  <Star className="w-4 h-4 fill-amber-400" />
-                  <span className="font-bold text-lg text-white">{venue.rating}</span>
-                </div>
-                <div className="text-slate-400 text-xs">{venue.reviewCount} reviews</div>
-              </div>
-              <div className="text-center border-r-2 border-black/30 last:border-0">
-                <div className="font-display font-bold text-lg text-white mb-1">{formatCurrency(venue.price)}</div>
-                <div className="text-slate-400 text-xs">per hour</div>
-              </div>
-              <div className="text-center border-r-2 border-black/30 last:border-0">
-                <div className="font-display font-bold text-lg text-white mb-1">{venue.area}</div>
-                <div className="text-slate-400 text-xs">Location</div>
-              </div>
-              <div className="text-center">
-                <div className="font-display font-bold text-lg text-white mb-1">
-                  {venue.timings.open} – {venue.timings.close}
-                </div>
-                <div className="text-slate-400 text-xs">Open hours</div>
-              </div>
+              {isInfra ? (
+                <>
+                  <div className="text-center border-r-2 border-black/30">
+                    <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Status</div>
+                    <div className="text-rose-450 font-extrabold text-xs bg-rose-950/40 border border-rose-500/30 px-2 py-1 rounded">Booking Unavailable</div>
+                  </div>
+                  <div className="text-center border-r-2 border-black/30">
+                    <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Location</div>
+                    <div className="text-white font-extrabold text-sm">{venue.area}</div>
+                  </div>
+                  <div className="text-center border-r-2 border-black/30">
+                    <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Venue Code</div>
+                    <div className="text-[#22d3ee] font-mono font-bold text-xs">{venue.venueCode}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Verification</div>
+                    <div className={cn(
+                      "font-bold text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded inline-block border border-black/40",
+                      venue.ownershipStatus === 'approved' ? "bg-emerald-400 text-black" :
+                      venue.ownershipStatus === 'pending' ? "bg-amber-400 text-black" :
+                      "bg-rose-500 text-white"
+                    )}>
+                      {venue.ownershipStatus === 'approved' ? "Verified" :
+                       venue.ownershipStatus === 'pending' ? "Pending" :
+                       "Unverified"}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center border-r-2 border-black/30 last:border-0">
+                    <div className="flex items-center justify-center gap-1 text-amber-400 mb-1">
+                      <Star className="w-4 h-4 fill-amber-400" />
+                      <span className="font-bold text-lg text-white">{venue.rating}</span>
+                    </div>
+                    <div className="text-slate-400 text-xs">{venue.reviewCount} reviews</div>
+                  </div>
+                  <div className="text-center border-r-2 border-black/30 last:border-0">
+                    <div className="font-display font-bold text-lg text-white mb-1">{formatCurrency(venue.price)}</div>
+                    <div className="text-slate-400 text-xs">per hour</div>
+                  </div>
+                  <div className="text-center border-r-2 border-black/30 last:border-0">
+                    <div className="font-display font-bold text-lg text-white mb-1">{venue.area}</div>
+                    <div className="text-slate-400 text-xs">Location</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-display font-bold text-lg text-white mb-1">
+                      {venue.timings.open} – {venue.timings.close}
+                    </div>
+                    <div className="text-slate-400 text-xs">Open hours</div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Description */}
             <div className="glass rounded-lg p-6">
-              <h2 className="font-display font-bold text-white text-lg mb-3">About this venue</h2>
+              <h2 className="font-display font-bold text-white text-lg mb-3">About this facility</h2>
               <p className="text-slate-300 leading-relaxed mb-4">{venue.description}</p>
               <div>
-                <span className={cn('text-sm font-semibold px-3 py-1.5 rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black', getSkillBadgeColor(venue.skillLevel))}>
-                  {venue.skillLevel === 'all' ? 'All Skill Levels' : `${venue.skillLevel.charAt(0).toUpperCase() + venue.skillLevel.slice(1)} Level`}
+                <span className={cn('text-sm font-semibold px-3 py-1.5 rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black', isInfra ? 'bg-slate-900 text-slate-400' : getSkillBadgeColor(venue.skillLevel))}>
+                  {isInfra ? '🏛️ Public Sports Infrastructure' : venue.skillLevel === 'all' ? 'All Skill Levels' : `${venue.skillLevel.charAt(0).toUpperCase() + venue.skillLevel.slice(1)} Level`}
                 </span>
               </div>
             </div>
@@ -219,33 +335,81 @@ export default function VenueDetailPage() {
             </div>
 
             {/* Peak Pricing Info */}
-            <div className="glass rounded-lg p-6 border-2 border-black">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-yellow-400" />
-                <h2 className="font-display font-bold text-white text-lg">Smart Pricing</h2>
+            {!isInfra && (
+              <div className="glass rounded-lg p-6 border-2 border-black">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                  <h2 className="font-display font-bold text-white text-lg">Smart Pricing</h2>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Morning', time: '5–8 AM', price: venue.peakPricing.morning, emoji: '🌅', isCheap: false },
+                    { label: 'Afternoon', time: '11 AM–4 PM', price: venue.peakPricing.afternoon, emoji: '☀️', isCheap: true },
+                    { label: 'Evening', time: '5–10 PM', price: venue.peakPricing.evening, emoji: '🌆', isCheap: false },
+                  ].map((t) => (
+                    <div key={t.label} className={`text-center p-3 rounded-md border-2 border-black ${t.isCheap ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-bold' : 'bg-slate-900 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'}`}>
+                      <div className="text-xl mb-1">{t.emoji}</div>
+                      <div className={`text-xs ${t.isCheap ? 'text-black' : 'text-slate-400'}`}>{t.label}</div>
+                      <div className={`text-xs ${t.isCheap ? 'text-black/70' : 'text-slate-500'}`}>{t.time}</div>
+                      <div className="font-bold text-sm mt-1">{formatCurrency(t.price)}</div>
+                      {t.isCheap && <div className="text-[10px] text-black font-extrabold tracking-wider mt-0.5">BEST VALUE</div>}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Morning', time: '5–8 AM', price: venue.peakPricing.morning, emoji: '🌅', isCheap: false },
-                  { label: 'Afternoon', time: '11 AM–4 PM', price: venue.peakPricing.afternoon, emoji: '☀️', isCheap: true },
-                  { label: 'Evening', time: '5–10 PM', price: venue.peakPricing.evening, emoji: '🌆', isCheap: false },
-                ].map((t) => (
-                  <div key={t.label} className={`text-center p-3 rounded-md border-2 border-black ${t.isCheap ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-bold' : 'bg-slate-900 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'}`}>
-                    <div className="text-xl mb-1">{t.emoji}</div>
-                    <div className={`text-xs ${t.isCheap ? 'text-black' : 'text-slate-400'}`}>{t.label}</div>
-                    <div className={`text-xs ${t.isCheap ? 'text-black/70' : 'text-slate-500'}`}>{t.time}</div>
-                    <div className="font-bold text-sm mt-1">{formatCurrency(t.price)}</div>
-                    {t.isCheap && <div className="text-[10px] text-black font-extrabold tracking-wider mt-0.5">BEST VALUE</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* Right: Booking */}
+          {/* Right: Booking or Claim */}
           <div>
             <div className="glass rounded-lg p-6 sticky top-24 border-2 border-black">
-              {booking === 'success' ? (
+              {isInfra ? (
+                <div className="text-center py-6">
+                  <div className={cn(
+                    "w-16 h-16 rounded-md border-2 border-black flex items-center justify-center mx-auto mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+                    venue.ownershipStatus === 'approved' ? "bg-emerald-400" :
+                    venue.ownershipStatus === 'pending' ? "bg-amber-400" :
+                    "bg-[#22d3ee]"
+                  )}>
+                    <ShieldCheck className="w-8 h-8 text-black" />
+                  </div>
+                  <h3 className="font-display text-xl font-bold text-white mb-2">Venue Verification</h3>
+                  <p className="text-slate-400 text-xs mb-4">
+                    Venue Code: <strong className="text-white font-mono text-sm tracking-wider select-all">{venue.venueCode}</strong>
+                  </p>
+
+                  <div className="mb-6 space-y-2">
+                    <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Verification State</div>
+                    {venue.ownershipStatus === 'approved' ? (
+                      <div className="bg-emerald-500/10 border-2 border-emerald-500/40 rounded-md p-3 text-emerald-400 text-xs font-bold shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        🛡️ Ownership Verified
+                      </div>
+                    ) : venue.ownershipStatus === 'pending' ? (
+                      <div className="bg-amber-500/10 border-2 border-amber-500/40 rounded-md p-3 text-amber-300 text-xs font-bold shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        🟡 Verification Pending
+                      </div>
+                    ) : (
+                      <div className="bg-rose-500/10 border-2 border-rose-500/40 rounded-md p-3 text-rose-300 text-xs font-bold shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                        ❌ Ownership Unverified
+                      </div>
+                    )}
+                  </div>
+
+                  {venue.ownershipStatus !== 'approved' && venue.ownershipStatus !== 'pending' && (
+                    <button
+                      onClick={handleVerify}
+                      className="w-full btn-primary justify-center py-3 text-xs font-black shadow-[2px_2px_0px_#000]"
+                    >
+                      Verify Ownership
+                    </button>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-4 text-xs text-slate-500 justify-center">
+                    <Shield className="w-3.5 h-3.5" />
+                    Verified ownership only • Admin approval required
+                  </div>
+                </div>
+              ) : booking === 'success' ? (
                 <div className="text-center py-6">
                   <div className="w-16 h-16 rounded-md bg-emerald-400 border-2 border-black flex items-center justify-center mx-auto mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     <Check className="w-8 h-8 text-black" />
@@ -341,7 +505,7 @@ export default function VenueDetailPage() {
                       {booking === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Booking'}
                     </button>
                   ) : (
-                    <Link href="/auth/login" className="w-full btn-primary justify-center py-3">
+                    <Link href="/auth/login" className="w-full btn-primary justify-center py-3 block text-center no-underline">
                       Sign In to Book
                     </Link>
                   )}
@@ -359,3 +523,4 @@ export default function VenueDetailPage() {
     </div>
   );
 }
+

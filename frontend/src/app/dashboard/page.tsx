@@ -295,8 +295,13 @@ function BookingCard({
   const pStatus = booking.paymentStatus;
 
   if (bStatus === 'cancelled') {
-    statusText = 'Cancelled';
-    statusClass = 'text-black bg-rose-400 border-black shadow-[2px_2px_0px_#000]';
+    if (pStatus === 'refund_pending') {
+      statusText = 'Refund Pending';
+      statusClass = 'text-black bg-pink-400 border-black shadow-[2px_2px_0px_#000]';
+    } else {
+      statusText = 'Cancelled';
+      statusClass = 'text-black bg-rose-400 border-black shadow-[2px_2px_0px_#000]';
+    }
   } else if (bStatus === 'completed') {
     statusText = 'Completed';
     statusClass = 'text-black bg-emerald-400 border-black shadow-[2px_2px_0px_#000]';

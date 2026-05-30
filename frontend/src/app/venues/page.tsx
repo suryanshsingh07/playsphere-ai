@@ -5,14 +5,16 @@ import { useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, Map, LayoutGrid, Loader2, Bot } from 'lucide-react';
 import { SPORTS_LIST, SPORTS_AREAS } from '@/shared/constants/venues';
 import { VenueCard } from '@/components/venue/VenueCard';
-import { VenueMap } from '@/components/venue/VenueMap';
+import { VenueMap, MapItem } from '@/components/venue/VenueMap';
 import { AIConciergePreview } from '@/components/ai/AIConciergePreview';
 import { VenueDiscoveryInsights } from '@/components/ai/VenueDiscoveryInsights';
-import { Venue, VenueFilters, Sport, SkillLevel } from '@/shared/types';
+import { Venue, VenueFilters, Sport, SkillLevel, Infrastructure, Landmark } from '@/shared/types';
 
 function VenuesContent() {
   const searchParams = useSearchParams();
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
+  const [allInfra, setAllInfra] = useState<Infrastructure[]>([]);
+  const [allLandmarks, setAllLandmarks] = useState<Landmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<VenueFilters>({
     sport: (searchParams.get('sport') as Sport) || '',
@@ -29,12 +31,24 @@ function VenuesContent() {
   useEffect(() => {
     let active = true;
     let unsubApprovedVenues: (() => void) | undefined;
+    let unsubInfra: (() => void) | undefined;
+    let unsubLandmarks: (() => void) | undefined;
 
-    import('@/backend/firebase/firestore').then(({ subscribeApprovedVenues }) => {
+    import('@/backend/firebase/firestore').then(({ subscribeApprovedVenues, subscribeInfrastructure, subscribeLandmarks }) => {
       if (!active) return;
       unsubApprovedVenues = subscribeApprovedVenues((data) => {
         if (active) {
           setAllVenues(data);
+        }
+      });
+      unsubInfra = subscribeInfrastructure((infraData) => {
+        if (active) {
+          setAllInfra(infraData);
+        }
+      });
+      unsubLandmarks = subscribeLandmarks((landmarkData) => {
+        if (active) {
+          setAllLandmarks(landmarkData);
           setLoading(false);
         }
       });
@@ -43,15 +57,44 @@ function VenuesContent() {
     return () => {
       active = false;
       if (unsubApprovedVenues) unsubApprovedVenues();
+      if (unsubInfra) unsubInfra();
+      if (unsubLandmarks) unsubLandmarks();
     };
   }, []);
 
+  const combinedItems = useMemo<Venue[]>(() => {
+    const unlinkedInfra = allInfra
+      .filter((i) => !i.ownerLinked)
+      .map((i) => ({
+        ...i,
+        sport: i.sport as Sport,
+        price: 0,
+        rating: i.rating || 0,
+        reviewCount: i.reviewCount || 0,
+        amenities: i.amenities || [],
+        skillLevel: 'all' as const,
+        timings: { open: '00:00', close: '00:00' },
+        description: i.description || '',
+        imageUrl: i.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800',
+        category: 'infrastructure',
+        available: false,
+        ownerId: 'system',
+        source: 'seed' as const,
+        approvalStatus: 'approved' as const,
+        address: `${i.name}, ${i.area}`,
+        peakPricing: { morning: 0, afternoon: 0, evening: 0 },
+      }));
+    return [...allVenues, ...unlinkedInfra] as Venue[];
+  }, [allVenues, allInfra]);
+
   const venues = useMemo(() => {
-    let filtered = [...allVenues];
+    let filtered = [...combinedItems];
 
     if (filters.sport) filtered = filtered.filter((v) => v.sport === filters.sport);
     if (filters.area) filtered = filtered.filter((v) => v.area === filters.area);
-    if (filters.maxPrice) filtered = filtered.filter((v) => v.price <= filters.maxPrice!);
+    if (filters.maxPrice) {
+      filtered = filtered.filter((v) => v.category === 'infrastructure' || v.price <= filters.maxPrice!);
+    }
     if (filters.skillLevel) filtered = filtered.filter((v) => v.skillLevel === filters.skillLevel || v.skillLevel === 'all');
     if (filters.searchQuery) {
       const q = filters.searchQuery.toLowerCase();
@@ -61,7 +104,51 @@ function VenuesContent() {
     }
 
     return filtered;
-  }, [filters, allVenues]);
+  }, [filters, combinedItems]);
+
+  const combinedRealtimeMapData = useMemo<MapItem[]>(() => {
+    const mapVenues = venues
+      .filter((v) => v.category !== 'infrastructure')
+      .map((v) => ({
+        id: v.id,
+        name: v.name,
+        area: v.area,
+        coordinates: v.coordinates,
+        mapType: 'marketplace' as const,
+        sport: v.sport,
+        imageUrl: v.imageUrl,
+        rating: v.rating,
+        price: v.price,
+        available: v.available,
+      }));
+
+    const mapInfra = venues
+      .filter((v) => v.category === 'infrastructure')
+      .map((v) => ({
+        id: v.id,
+        name: v.name,
+        area: v.area,
+        coordinates: v.coordinates,
+        mapType: 'infrastructure' as const,
+        sport: v.sport,
+        imageUrl: v.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800',
+        venueCode: v.venueCode,
+        ownershipStatus: v.ownershipStatus,
+      }));
+
+    const mapLandmarks = allLandmarks.map((l) => ({
+      id: l.id,
+      name: l.name,
+      area: l.area,
+      coordinates: { lat: l.latitude, lng: l.longitude },
+      mapType: 'landmark' as const,
+      sportsRelevance: l.sportsRelevance,
+    }));
+
+    return [...mapVenues, ...mapInfra, ...mapLandmarks];
+  }, [venues, allLandmarks]);
+
+
 
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
@@ -273,7 +360,7 @@ function VenuesContent() {
             </div>
           )
         ) : view === 'map' ? (
-          <VenueMap venues={venues} />
+          <VenueMap items={combinedRealtimeMapData} />
         ) : (
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-6">
