@@ -77,7 +77,7 @@ export function AIConciergePreview() {
 
     // If it's a retry of the last message, don't duplicate user message in list if already there
     const isRetry = !!text && messages[messages.length - 1]?.isError;
-    
+
     const userMessage: ChatMessageItem = {
       role: 'user',
       content: messageText,
@@ -90,7 +90,7 @@ export function AIConciergePreview() {
     } else if (!text || !messages.some(m => m.role === 'user' && m.content === messageText && Date.now() - m.timestamp.getTime() < 5000)) {
       setMessages((prev) => [...prev, userMessage]);
     }
-    
+
     setInput('');
     setLoading(true);
 
@@ -144,17 +144,17 @@ export function AIConciergePreview() {
     }
   };
 
-  const QUICK_PROMPTS = mode === 'discovery' 
+  const QUICK_PROMPTS = mode === 'discovery'
     ? [
-        'Beginner badminton near Gomti Nagar',
-        'Football turf under ₹1000',
-        'Cheapest swimming pool Hazratganj',
-      ]
+      'Beginner badminton near Gomti Nagar',
+      'Football turf under ₹1000',
+      'Cheapest swimming pool Hazratganj',
+    ]
     : [
-        'Beginner badminton tips',
-        'Affordable time slots advice',
-        'Basic football guidelines',
-      ];
+      'Beginner badminton tips',
+      'Affordable time slots advice',
+      'Basic football guidelines',
+    ];
 
   return (
     <div className="bg-slate-950 border-3 border-black rounded-lg overflow-hidden shadow-[6px_6px_0px_#000]">
@@ -207,8 +207,8 @@ export function AIConciergePreview() {
                 msg.role === 'user'
                   ? 'bg-cyan-400 text-black rounded-br-none border-2 border-black rounded-md shadow-[2px_2px_0px_#000]'
                   : msg.isError
-                  ? 'bg-rose-950/40 text-rose-300 border-rose-500 shadow-[2px_2px_0px_rgba(239,68,68,0.2)] border-2 rounded-md rounded-bl-none'
-                  : 'glass text-slate-200 rounded-bl-none'
+                    ? 'bg-rose-950/40 text-rose-300 border-rose-500 shadow-[2px_2px_0px_rgba(239,68,68,0.2)] border-2 rounded-md rounded-bl-none'
+                    : 'glass text-slate-200 rounded-bl-none'
               )}
             >
               <pre className="font-sans whitespace-pre-wrap">{msg.content}</pre>

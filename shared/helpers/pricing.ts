@@ -91,7 +91,7 @@ export function generateTimeSlots(
   slotDurationMinutes = 60
 ) {
   const slots = [];
-  
+
   function parseTimeToMinutes(timeStr: string): number {
     const clean = timeStr.trim().toUpperCase();
     const isPM = clean.endsWith('PM');
@@ -100,13 +100,13 @@ export function generateTimeSlots(
     const [hStr, mStr] = timePart.split(':');
     let hours = parseInt(hStr, 10) || 0;
     const minutes = parseInt(mStr, 10) || 0;
-    
+
     if (isPM && hours < 12) {
       hours += 12;
     } else if (isAM && hours === 12) {
       hours = 0;
     }
-    
+
     return hours * 60 + minutes;
   }
 
@@ -151,7 +151,7 @@ export function generateTimeSlots(
 export function isSlotInPast(dateStr: string, slotStr: string, referenceTime?: Date): boolean {
   try {
     const now = referenceTime || new Date();
-    
+
     // YYYY-MM-DD in local time
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -167,10 +167,10 @@ export function isSlotInPast(dateStr: string, slotStr: string, referenceTime?: D
       if (parts.length >= 2) {
         const endTimeStr = parts[1].trim(); // e.g. "12:00"
         const [endH, endM] = endTimeStr.split(':').map(Number);
-        
+
         const slotEndTime = new Date(now);
         slotEndTime.setHours(endH, endM, 0, 0);
-        
+
         return slotEndTime.getTime() <= now.getTime();
       }
     }
@@ -188,7 +188,7 @@ export function getBookingLifecycle(
   referenceTime?: Date
 ): 'upcoming' | 'completed' | 'expired' | 'cancelled' {
   const bStatus = (booking.bookingStatus || booking.status || '').toLowerCase();
-  
+
   if (bStatus === 'cancelled') {
     return 'cancelled';
   }
@@ -200,11 +200,11 @@ export function getBookingLifecycle(
     return 'upcoming';
   } else {
     // If it passed, check if it was paid/confirmed/verified
-    const isSuccess = 
-      bStatus === 'confirmed' || 
-      booking.paymentStatus === 'paid' || 
+    const isSuccess =
+      bStatus === 'confirmed' ||
+      booking.paymentStatus === 'paid' ||
       booking.paymentStatus === 'verification_pending';
-    
+
     return isSuccess ? 'completed' : 'expired';
   }
 }
