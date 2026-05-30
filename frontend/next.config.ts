@@ -5,10 +5,7 @@ const nextConfig: NextConfig = {
   // Compile TypeScript from sibling directories outside frontend/
   transpilePackages: ["backend", "shared"],
 
-  // Empty turbopack config to silence warnings when using --webpack flag
-  turbopack: {},
-
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // Resolve @/backend and @/shared to the sibling directories
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -16,12 +13,18 @@ const nextConfig: NextConfig = {
       "@/shared": path.resolve(process.cwd(), "../shared"),
     };
 
-    // Ensure backend/ and shared/ can find packages installed in frontend/node_modules
+    // Ensure we look in both local and root node_modules for hoisted dependencies
     config.resolve.modules = [
       path.resolve(process.cwd(), "node_modules"),
+      path.resolve(process.cwd(), "../node_modules"),
       "node_modules",
       ...(config.resolve.modules || []),
     ];
+
+    // firebase-admin should be treated as an external on the server
+    if (isServer) {
+      config.externals.push('firebase-admin');
+    }
 
     return config;
   },
