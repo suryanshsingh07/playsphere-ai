@@ -66,6 +66,16 @@ export default function AdminDashboardPage() {
   const [discoveryLogs, setDiscoveryLogs] = useState<string[]>([]);
   const [scanState, setScanState] = useState<{ isRunning: boolean; lastScanAt: any } | null>(null);
   const [cooldownLeft, setCooldownLeft] = useState<number>(0);
+  const [scanResult, setScanResult] = useState<{
+    osmFetched: number;
+    normalized: number;
+    rejected: number;
+    added: number;
+    updated: number;
+    skipped: number;
+    enriched: number;
+    errors: number;
+  } | null>(null);
 
   const showSuccess = (msg: string) => {
     setSuccessMsg(msg);
@@ -236,6 +246,16 @@ export default function AdminDashboardPage() {
         setDiscoveryLogs(data.logs || [
           `[SUCCESS] Ingestion completed. Added: ${data.added}, Skipped: ${data.skipped}, Errors: ${data.errors}`
         ]);
+        setScanResult({
+          osmFetched: data.osmFetched || 0,
+          normalized: data.normalized || 0,
+          rejected: data.rejected || 0,
+          added: data.added || 0,
+          updated: data.updated || 0,
+          skipped: data.skipped || 0,
+          enriched: data.enriched || 0,
+          errors: data.errors || 0
+        });
         showSuccess(`✅ Ingested ${data.added} facilities, skipped ${data.skipped} duplicates!`);
       } else {
         setDiscoveryLogs(data.logs || [`[ERROR] ${data.error || 'Unknown error occurred.'}`]);
@@ -879,8 +899,44 @@ export default function AdminDashboardPage() {
                   )}
                 </div>
 
-                {/* Console Log Terminal */}
-                <div className="glass rounded-lg border-2 border-black shadow-[3px_3px_0px_#000] overflow-hidden">
+                  {/* Telemetry Counter Dashboard */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">OSM Raw</div>
+                      <div className="text-xl font-black text-cyan-400 mt-0.5">{scanResult ? scanResult.osmFetched : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Normalized</div>
+                      <div className="text-xl font-black text-purple-400 mt-0.5">{scanResult ? scanResult.normalized : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Rejected</div>
+                      <div className="text-xl font-black text-rose-500 mt-0.5">{scanResult ? scanResult.rejected : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Added</div>
+                      <div className="text-xl font-black text-emerald-400 mt-0.5">{scanResult ? scanResult.added : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Updated</div>
+                      <div className="text-xl font-black text-amber-400 mt-0.5">{scanResult ? scanResult.updated : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Skipped</div>
+                      <div className="text-xl font-black text-slate-400 mt-0.5">{scanResult ? scanResult.skipped : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Enriched</div>
+                      <div className="text-xl font-black text-cyan-400 mt-0.5">{scanResult ? scanResult.enriched : 0}</div>
+                    </div>
+                    <div className="glass bg-[#121526] p-3 rounded-md border-2 border-black shadow-[2px_2px_0px_#000] text-center">
+                      <div className="text-[10px] text-slate-400 font-black uppercase">Errors</div>
+                      <div className="text-xl font-black text-rose-500 mt-0.5">{scanResult ? scanResult.errors : 0}</div>
+                    </div>
+                  </div>
+
+                  {/* Console Log Terminal */}
+                  <div className="glass rounded-lg border-2 border-black shadow-[3px_3px_0px_#000] overflow-hidden">
                   <div className="bg-black/40 px-4 py-2 flex items-center justify-between border-b border-black">
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
@@ -1006,6 +1062,7 @@ export default function AdminDashboardPage() {
                         <th>Area</th>
                         <th>Type</th>
                         <th>Venue Code</th>
+                        <th>Source</th>
                         <th>Claim Status</th>
                       </tr>
                     </thead>
@@ -1036,6 +1093,25 @@ export default function AdminDashboardPage() {
                           );
                         }
 
+                        let sourceBadge = (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700/50">
+                            Seed
+                          </span>
+                        );
+                        if (item.source === 'osm_discovered') {
+                          sourceBadge = (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-800/40">
+                              OSM
+                            </span>
+                          );
+                        } else if (item.source === 'osm_enriched' || item.source === 'enriched') {
+                          sourceBadge = (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950 text-purple-400 border border-purple-800/40">
+                              Enriched
+                            </span>
+                          );
+                        }
+
                         return (
                           <tr key={item.id} className="hover:bg-white/5 transition-colors">
                             <td className="py-3 font-semibold text-slate-200">{item.name}</td>
@@ -1043,6 +1119,7 @@ export default function AdminDashboardPage() {
                             <td className="text-slate-300">{item.area}</td>
                             <td className="capitalize text-slate-400">{item.infrastructureType}</td>
                             <td className="font-mono font-bold text-purple-400">{item.venueCode || 'N/A'}</td>
+                            <td>{sourceBadge}</td>
                             <td>{statusBadge}</td>
                           </tr>
                         );
