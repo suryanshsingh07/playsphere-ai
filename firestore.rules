@@ -58,8 +58,12 @@ service cloud.firestore {
         resource.data.ownerId == request.auth.uid ||
         isAdmin()
       );
-      // No delete (preserve booking history)
-      allow delete: if false;
+      // Allow delete only for admins (cleanup) or owners if the booking is cancelled
+      allow delete: if isAdmin() || (
+        isAuthenticated() &&
+        (resource.data.playerId == request.auth.uid || resource.data.userId == request.auth.uid) &&
+        (resource.data.bookingStatus == 'cancelled' || resource.data.status == 'cancelled')
+      );
     }
 
     // ── Landmarks collection ──────────────────────────────────────────────

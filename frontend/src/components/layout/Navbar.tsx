@@ -3,14 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Menu, X, Zap, LogOut, LayoutDashboard, Building2, Shield } from 'lucide-react';
+import { Menu, X, Zap, LogOut, LayoutDashboard, Building2, Shield, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useTheme } from '@/contexts/ThemeProvider';
 import { logOut } from '@/backend/firebase/auth';
 import { cn } from '@/shared/helpers/utils';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isAdmin, isOwner } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
 
   const navLinks = [
@@ -59,6 +61,14 @@ export function Navbar() {
 
           {/* Auth Actions */}
           <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-9 h-9 text-slate-300 hover:text-cyan-400 bg-slate-900 border-2 border-black rounded-md shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:translate-y-0 cursor-pointer transition-all"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             {user ? (
               <>
                 <Link
@@ -116,6 +126,13 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-2 border-t-2 border-black flex flex-col gap-2">
+              <button
+                onClick={() => { toggleTheme(); setIsOpen(false); }}
+                className="btn-secondary text-sm justify-center py-2 flex items-center gap-2"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </button>
               {user ? (
                 <>
                   <Link

@@ -176,7 +176,7 @@ function VenuesContent() {
               placeholder="Search venues, areas, or sports..."
               value={filters.searchQuery || ''}
               onChange={(e) => setFilters((f) => ({ ...f, searchQuery: e.target.value }))}
-              className="w-full bg-[#0d111d] border-2 border-black rounded-md pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-0 shadow-[2px_2px_0px_#000] transition-all"
+              className="w-full bg-slate-900 border-2 border-black rounded-md pl-11 pr-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-0 shadow-[2px_2px_0px_#000] transition-all"
             />
           </div>
           <button
@@ -188,7 +188,7 @@ function VenuesContent() {
             <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filters</span>
           </button>
-          <div className="flex bg-[#0d111d] rounded-md border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000]">
+          <div className="flex bg-slate-900 rounded-md border-2 border-black overflow-hidden shadow-[2px_2px_0px_#000]">
             <button
               onClick={() => setView('grid')}
               title="Grid View"
@@ -227,11 +227,11 @@ function VenuesContent() {
                 title="Filter by Sport"
                 value={filters.sport || ''}
                 onChange={(e) => setFilters((f) => ({ ...f, sport: e.target.value as Sport | '' }))}
-                className="w-full bg-[#0d111d] border-2 border-black rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
+                className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
               >
-                <option value="" className="bg-[#0d111d]">All Sports</option>
+                <option value="" className="bg-slate-900">All Sports</option>
                 {SPORTS_LIST.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-[#0d111d]">{s.emoji} {s.label}</option>
+                  <option key={s.value} value={s.value} className="bg-slate-900">{s.emoji} {s.label}</option>
                 ))}
               </select>
             </div>
@@ -244,11 +244,11 @@ function VenuesContent() {
                 title="Filter by Area"
                 value={filters.area || ''}
                 onChange={(e) => setFilters((f) => ({ ...f, area: e.target.value }))}
-                className="w-full bg-[#0d111d] border-2 border-black rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
+                className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
               >
-                <option value="" className="bg-[#0d111d]">All Areas</option>
+                <option value="" className="bg-slate-900">All Areas</option>
                 {SPORTS_AREAS.map((a) => (
-                  <option key={a} value={a} className="bg-[#0d111d]">{a}</option>
+                  <option key={a} value={a} className="bg-slate-900">{a}</option>
                 ))}
               </select>
             </div>
@@ -261,12 +261,12 @@ function VenuesContent() {
                 title="Filter by Skill Level"
                 value={filters.skillLevel || ''}
                 onChange={(e) => setFilters((f) => ({ ...f, skillLevel: e.target.value as SkillLevel | '' }))}
-                className="w-full bg-[#0d111d] border-2 border-black rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
+                className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-400 shadow-[2px_2px_0px_#000]"
               >
-                <option value="" className="bg-[#0d111d]">All Levels</option>
-                <option value="beginner" className="bg-[#0d111d]">Beginner</option>
-                <option value="intermediate" className="bg-[#0d111d]">Intermediate</option>
-                <option value="advanced" className="bg-[#0d111d]">Advanced</option>
+                <option value="" className="bg-slate-900">All Levels</option>
+                <option value="beginner" className="bg-slate-900">Beginner</option>
+                <option value="intermediate" className="bg-slate-900">Intermediate</option>
+                <option value="advanced" className="bg-slate-900">Advanced</option>
               </select>
             </div>
 
@@ -285,7 +285,7 @@ function VenuesContent() {
                 onChange={(e) => setFilters((f) => ({ ...f, maxPrice: Number(e.target.value) }))}
                 placeholder="Filter by price"
                 title="Filter by price"
-                className="w-full accent-cyan-400 h-2 bg-[#0d111d] border-2 border-black rounded-md appearance-none cursor-pointer"
+                className="w-full accent-cyan-400 h-2 bg-slate-900 border-2 border-black rounded-md appearance-none cursor-pointer"
               />
             </div>
 
@@ -293,7 +293,7 @@ function VenuesContent() {
             <div className="col-span-1 sm:col-span-2 md:col-span-4 flex justify-end">
               <button
                 onClick={() => setFilters({ sport: '', area: '', maxPrice: 2000, skillLevel: '', searchQuery: '' })}
-                className="text-xs font-bold text-rose-400 hover:text-rose-300 border-2 border-black bg-[#0d111d] px-3 py-1.5 rounded-md shadow-[2px_2px_0px_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                className="text-xs font-bold text-rose-400 hover:text-rose-300 border-2 border-black bg-slate-900 px-3 py-1.5 rounded-md shadow-[2px_2px_0px_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
               >
                 Reset Filters
               </button>

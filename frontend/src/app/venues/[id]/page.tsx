@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { MapPin, Star, Clock, ArrowLeft, Calendar, Check, Loader2, Shield, Zap, Ticket, ShieldCheck } from 'lucide-react';
 import { Venue } from '@/shared/types';
 import { formatCurrency, getSportEmoji, getSportColor, getSkillBadgeColor, cn } from '@/shared/helpers/utils';
-import { generateTimeSlots } from '@/shared/helpers/pricing';
+import { generateTimeSlots, isSlotInPast } from '@/shared/helpers/pricing';
 import { useAuth } from '@/contexts/AuthProvider';
 import { createBooking, getVenueBookings, checkSlotAvailability, getVenueById, getInfrastructureById } from '@/backend/firebase/firestore';
 
@@ -120,7 +120,7 @@ export default function VenueDetailPage() {
           const bookedSlots = new Set(bookings.map((b) => b.slot));
           const updatedSlots = generatedSlots.map((s) => ({
             ...s,
-            available: s.available && !bookedSlots.has(s.label),
+            available: s.available && !bookedSlots.has(s.label) && !isSlotInPast(selectedDate, s.label),
           }));
           setSlots(updatedSlots);
 
@@ -263,7 +263,7 @@ export default function VenueDetailPage() {
                   </div>
                   <div className="text-center border-r-2 border-black/30">
                     <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Location</div>
-                    <div className="text-white font-extrabold text-sm">{venue.area}</div>
+                    <div className="text-slate-200 font-extrabold text-sm">{venue.area}</div>
                   </div>
                   <div className="text-center border-r-2 border-black/30">
                     <div className="font-display font-black text-slate-400 text-xs uppercase tracking-wider mb-1">Venue Code</div>
@@ -288,20 +288,20 @@ export default function VenueDetailPage() {
                   <div className="text-center border-r-2 border-black/30 last:border-0">
                     <div className="flex items-center justify-center gap-1 text-amber-400 mb-1">
                       <Star className="w-4 h-4 fill-amber-400" />
-                      <span className="font-bold text-lg text-white">{venue.rating}</span>
+                      <span className="font-bold text-lg text-slate-200">{venue.rating}</span>
                     </div>
                     <div className="text-slate-400 text-xs">{venue.reviewCount} reviews</div>
                   </div>
                   <div className="text-center border-r-2 border-black/30 last:border-0">
-                    <div className="font-display font-bold text-lg text-white mb-1">{formatCurrency(venue.price)}</div>
+                    <div className="font-display font-bold text-lg text-slate-200 mb-1">{formatCurrency(venue.price)}</div>
                     <div className="text-slate-400 text-xs">per hour</div>
                   </div>
                   <div className="text-center border-r-2 border-black/30 last:border-0">
-                    <div className="font-display font-bold text-lg text-white mb-1">{venue.area}</div>
+                    <div className="font-display font-bold text-lg text-slate-200 mb-1">{venue.area}</div>
                     <div className="text-slate-400 text-xs">Location</div>
                   </div>
                   <div className="text-center">
-                    <div className="font-display font-bold text-lg text-white mb-1">
+                    <div className="font-display font-bold text-lg text-slate-200 mb-1">
                       {venue.timings.open} – {venue.timings.close}
                     </div>
                     <div className="text-slate-400 text-xs">Open hours</div>
@@ -312,7 +312,7 @@ export default function VenueDetailPage() {
 
             {/* Description */}
             <div className="glass rounded-lg p-6">
-              <h2 className="font-display font-bold text-white text-lg mb-3">About this facility</h2>
+              <h2 className="font-display font-bold text-slate-200 text-lg mb-3">About this facility</h2>
               <p className="text-slate-300 leading-relaxed mb-4">{venue.description}</p>
               <div>
                 <span className={cn('text-sm font-semibold px-3 py-1.5 rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black', isInfra ? 'bg-slate-900 text-slate-400' : getSkillBadgeColor(venue.skillLevel))}>
@@ -323,7 +323,7 @@ export default function VenueDetailPage() {
 
             {/* Amenities */}
             <div className="glass rounded-lg p-6">
-              <h2 className="font-display font-bold text-white text-lg mb-4">Amenities</h2>
+              <h2 className="font-display font-bold text-slate-200 text-lg mb-4">Amenities</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {venue.amenities.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-2 text-slate-300 text-sm bg-slate-900/50 p-2.5 rounded-md border border-black/40">
@@ -339,7 +339,7 @@ export default function VenueDetailPage() {
               <div className="glass rounded-lg p-6 border-2 border-black">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="w-5 h-5 text-yellow-400" />
-                  <h2 className="font-display font-bold text-white text-lg">Smart Pricing</h2>
+                  <h2 className="font-display font-bold text-slate-200 text-lg">Smart Pricing</h2>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {[
@@ -347,7 +347,7 @@ export default function VenueDetailPage() {
                     { label: 'Afternoon', time: '11 AM–4 PM', price: venue.peakPricing.afternoon, emoji: '☀️', isCheap: true },
                     { label: 'Evening', time: '5–10 PM', price: venue.peakPricing.evening, emoji: '🌆', isCheap: false },
                   ].map((t) => (
-                    <div key={t.label} className={`text-center p-3 rounded-md border-2 border-black ${t.isCheap ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-bold' : 'bg-slate-900 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'}`}>
+                    <div key={t.label} className={`text-center p-3 rounded-md border-2 border-black ${t.isCheap ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-bold' : 'bg-slate-900 text-slate-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'}`}>
                       <div className="text-xl mb-1">{t.emoji}</div>
                       <div className={`text-xs ${t.isCheap ? 'text-black' : 'text-slate-400'}`}>{t.label}</div>
                       <div className={`text-xs ${t.isCheap ? 'text-black/70' : 'text-slate-500'}`}>{t.time}</div>
@@ -373,9 +373,9 @@ export default function VenueDetailPage() {
                   )}>
                     <ShieldCheck className="w-8 h-8 text-black" />
                   </div>
-                  <h3 className="font-display text-xl font-bold text-white mb-2">Venue Verification</h3>
+                  <h3 className="font-display text-xl font-bold text-slate-200 mb-2">Venue Verification</h3>
                   <p className="text-slate-400 text-xs mb-4">
-                    Venue Code: <strong className="text-white font-mono text-sm tracking-wider select-all">{venue.venueCode}</strong>
+                    Venue Code: <strong className="text-slate-200 font-mono text-sm tracking-wider select-all">{venue.venueCode}</strong>
                   </p>
 
                   <div className="mb-6 space-y-2">
@@ -414,7 +414,7 @@ export default function VenueDetailPage() {
                   <div className="w-16 h-16 rounded-md bg-emerald-400 border-2 border-black flex items-center justify-center mx-auto mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     <Check className="w-8 h-8 text-black" />
                   </div>
-                  <h3 className="font-display text-xl font-bold text-white mb-2">Booking Confirmed!</h3>
+                  <h3 className="font-display text-xl font-bold text-slate-200 mb-2">Booking Confirmed!</h3>
                   <p className="text-slate-400 text-sm mb-4">Your slot is reserved.</p>
                   {confirmedTicket && (
                     <div className="bg-slate-900 border-2 border-cyan-400 rounded-md p-3 shadow-[3px_3px_0px_0px_#22d3ee] mb-4">
@@ -429,7 +429,7 @@ export default function VenueDetailPage() {
                 </div>
               ) : (
                 <>
-                  <h2 className="font-display font-bold text-white text-lg mb-4">Book a Slot</h2>
+                  <h2 className="font-display font-bold text-slate-200 text-lg mb-4">Book a Slot</h2>
 
                   {/* Date Picker */}
                   <div className="mb-4">
@@ -445,7 +445,7 @@ export default function VenueDetailPage() {
                       onChange={(e) => setSelectedDate(e.target.value)}
                       placeholder="Select booking date"
                       title="Booking Date"
-                      className="w-full bg-[#121620] border-2 border-black rounded-md px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                      className="w-full bg-slate-900 border-2 border-black rounded-md px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-400 focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                     />
                   </div>
 
@@ -455,33 +455,42 @@ export default function VenueDetailPage() {
                       <Clock className="w-3.5 h-3.5 inline mr-1" />Time Slot
                     </label>
                     <div className="grid grid-cols-2 gap-2.5 max-h-60 overflow-y-auto scrollbar-hide p-1">
-                      {slots.map((slot) => (
-                        <button
-                          key={slot.time}
-                          disabled={!slot.available}
-                          onClick={() => { setSelectedSlot(slot.label); setSelectedPrice(slot.finalPrice); }}
-                          className={cn(
-                            'text-xs rounded-md px-2 py-2.5 border-2 border-black transition-all text-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]',
-                            !slot.available && 'opacity-40 cursor-not-allowed line-through bg-slate-800 text-slate-500 shadow-none border-dashed border-black/30',
-                            slot.available && selectedSlot !== slot.label && 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
-                            slot.available && selectedSlot === slot.label && 'bg-cyan-400 text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] translate-x-0.5 translate-y-0.5'
-                          )}
-                        >
-                          <div className="font-medium">{slot.time}</div>
-                          <div className={cn("font-bold text-[11px]", selectedSlot === slot.label ? "text-black" : "text-emerald-400")}>
-                            {formatCurrency(slot.finalPrice)}
-                          </div>
-                        </button>
-                      ))}
+                      {slots.map((slot) => {
+                        const isPast = isSlotInPast(selectedDate, slot.label);
+                        return (
+                          <button
+                            key={slot.time}
+                            disabled={!slot.available}
+                            onClick={() => { setSelectedSlot(slot.label); setSelectedPrice(slot.finalPrice); }}
+                            className={cn(
+                              'text-xs rounded-md px-2 py-2.5 border-2 border-black transition-all text-center font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]',
+                              !slot.available && 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 shadow-none border-dashed border-black/30',
+                              slot.available && selectedSlot !== slot.label && 'bg-slate-900 text-slate-300 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
+                              slot.available && selectedSlot === slot.label && 'bg-cyan-400 text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] translate-x-0.5 translate-y-0.5'
+                            )}
+                          >
+                            <div className="font-medium">{slot.time}</div>
+                            {!slot.available ? (
+                              <div className="text-[9px] font-extrabold uppercase text-slate-500 mt-0.5 tracking-wider">
+                                {isPast ? 'Expired' : 'Booked'}
+                              </div>
+                            ) : (
+                              <div className={cn("font-bold text-[11px]", selectedSlot === slot.label ? "text-black" : "text-emerald-400")}>
+                                {formatCurrency(slot.finalPrice)}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Price Summary */}
                   {selectedSlot && (
-                    <div className="bg-[#121620] border-2 border-black rounded-md p-4 mb-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="bg-slate-900 border-2 border-black rounded-md p-4 mb-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">Slot</span>
-                        <span className="text-white font-bold">{selectedSlot}</span>
+                        <span className="text-slate-200 font-bold">{selectedSlot}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm mt-2 pt-2 border-t border-black">
                         <span className="text-slate-400">Total</span>
@@ -512,7 +521,7 @@ export default function VenueDetailPage() {
 
                   <div className="flex items-center gap-2 mt-4 text-xs text-slate-500 justify-center">
                     <Shield className="w-3.5 h-3.5" />
-                    Secure simulated booking • No payment required
+                    Demo booking flow — payment simulation only
                   </div>
                 </>
               )}

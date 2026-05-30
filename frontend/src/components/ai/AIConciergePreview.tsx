@@ -157,7 +157,7 @@ export function AIConciergePreview() {
       ];
 
   return (
-    <div className="bg-[#080a10] border-3 border-black rounded-lg overflow-hidden shadow-[6px_6px_0px_#000]">
+    <div className="bg-slate-950 border-3 border-black rounded-lg overflow-hidden shadow-[6px_6px_0px_#000]">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b-2 border-black bg-purple-600 text-white">
         <div className="w-9 h-9 rounded-md bg-yellow-400 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000]">
@@ -174,13 +174,13 @@ export function AIConciergePreview() {
       </div>
 
       {/* Mode Selector Toggle */}
-      <div className="flex border-b-2 border-black p-2 bg-[#0d111d] gap-2">
+      <div className="flex border-b-2 border-black p-2 bg-slate-900 gap-2">
         <button
           suppressHydrationWarning={true}
           onClick={() => setMode('discovery')}
           className={cn(
             "flex-1 text-center py-1.5 text-xs font-black rounded border-2 border-black transition-all shadow-[2px_2px_0px_#000] cursor-pointer",
-            mode === 'discovery' ? "bg-purple-600 text-white shadow-[1px_1px_0px_#000] translate-x-0.5 translate-y-0.5" : "bg-slate-900 text-slate-400 hover:text-white"
+            mode === 'discovery' ? "bg-purple-600 text-white shadow-[1px_1px_0px_#000] translate-x-0.5 translate-y-0.5" : "bg-slate-950 text-slate-400 hover:text-slate-200"
           )}
         >
           🔍 Discovery Mode
@@ -190,7 +190,7 @@ export function AIConciergePreview() {
           onClick={() => setMode('guidance')}
           className={cn(
             "flex-1 text-center py-1.5 text-xs font-black rounded border-2 border-black transition-all shadow-[2px_2px_0px_#000] cursor-pointer",
-            mode === 'guidance' ? "bg-emerald-400 text-black shadow-[1px_1px_0px_#000] translate-x-0.5 translate-y-0.5" : "bg-slate-900 text-slate-400 hover:text-white"
+            mode === 'guidance' ? "bg-emerald-400 text-black shadow-[1px_1px_0px_#000] translate-x-0.5 translate-y-0.5" : "bg-slate-950 text-slate-400 hover:text-slate-200"
           )}
         >
           🏸 Guidance Mode
@@ -247,7 +247,7 @@ export function AIConciergePreview() {
                     return (
                       <div
                         key={card.venueId}
-                        className="bg-[#0b0e17]/95 border-2 border-black rounded-lg overflow-hidden shadow-[3px_3px_0px_#000] flex flex-col hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000] transition-all"
+                        className="bg-slate-900 border-2 border-black rounded-lg overflow-hidden shadow-[3px_3px_0px_#000] flex flex-col hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_#000] transition-all"
                       >
                         {/* Image */}
                         <div className="relative h-28 overflow-hidden bg-slate-900 border-b border-black">
@@ -278,7 +278,7 @@ export function AIConciergePreview() {
                         {/* Details */}
                         <div className="p-3 flex-1 flex flex-col justify-between">
                           <div>
-                            <h4 className="font-extrabold text-white text-xs mb-1 line-clamp-1">
+                            <h4 className="font-extrabold text-slate-200 text-xs mb-1 line-clamp-1">
                               {card.title}
                             </h4>
                             <p className="text-slate-400 text-[10px] mb-2 flex items-center gap-0.5">
@@ -340,7 +340,7 @@ export function AIConciergePreview() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[#121620] border-2 border-black rounded-md rounded-bl-none px-4 py-3 shadow-[2px_2px_0px_#000] flex items-center gap-1">
+            <div className="bg-slate-900 border-2 border-black rounded-md rounded-bl-none px-4 py-3 shadow-[2px_2px_0px_#000] flex items-center gap-1">
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" />
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce animation-delay-150ms" />
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce animation-delay-300ms" />
@@ -357,7 +357,7 @@ export function AIConciergePreview() {
             key={prompt}
             onClick={() => sendMessage(prompt)}
             disabled={loading}
-            className="text-xs bg-[#121526] border-2 border-black rounded-md px-3 py-1.5 text-slate-300 font-bold hover:bg-cyan-400 hover:text-black hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0px_#000] transition-all cursor-pointer disabled:opacity-50"
+            className="text-xs bg-slate-900 border-2 border-black rounded-md px-3 py-1.5 text-slate-300 font-bold hover:bg-cyan-400 hover:text-black hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0px_#000] transition-all cursor-pointer disabled:opacity-50"
           >
             {prompt}
           </button>

@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
-    "@opentelemetry/api": "^1.9.1",
     "@react-google-maps/api": "^2.20.8",
     "clsx": "^2.1.1",
     "firebase": "^12.13.0",

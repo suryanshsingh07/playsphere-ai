@@ -25,7 +25,7 @@ export default async function HomePage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-slate-900 border-2 border-black rounded-md px-4 py-1.5 mb-8 shadow-[2px_2px_0px_#000]">
             <Zap className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400" />
-            <span className="text-xs font-bold text-cyan-400 tracking-wide uppercase">APL Qualifiers 2026 — Team DeepStack</span>
+            <span className="text-xs font-bold text-cyan-400 tracking-wide uppercase">APL Final Round 2026 — Team DeepStack</span>
           </div>
 
           {/* Headline */}
@@ -34,7 +34,7 @@ export default async function HomePage() {
             <br />
             <span className="gradient-text">Sports Venue</span>
             <br />
-            <span className="text-white">with AI</span>
+            <span className="text-slate-200">with AI</span>
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
@@ -60,7 +60,7 @@ export default async function HomePage() {
               { value: 'AI', label: 'Powered' },
             ].map((stat) => (
               <div key={stat.label} className="bg-slate-900 border-2 border-black rounded-lg p-4 text-center shadow-[3px_3px_0px_#000]">
-                <div className="font-display text-2xl font-black text-white">{stat.value}</div>
+                <div className="font-display text-2xl font-black text-slate-200">{stat.value}</div>
                 <div className="text-cyan-400 text-xs font-bold uppercase mt-1 tracking-wider">{stat.label}</div>
               </div>
             ))}
@@ -93,11 +93,11 @@ export default async function HomePage() {
               { icon: Shield, title: 'Book Instantly', desc: 'Select your time slot and confirm your booking', color: 'bg-emerald-400 text-black', num: '04' },
             ].map((step) => (
               <div key={step.num} className="relative bg-slate-900 border-2 border-black rounded-lg p-6 card-hover shadow-[4px_4px_0px_#000]">
-                <div className="text-3xl font-display font-black text-white/20 absolute top-4 right-4">{step.num}</div>
+                <div className="text-3xl font-display font-black text-slate-200/20 absolute top-4 right-4">{step.num}</div>
                 <div className={`w-10 h-10 rounded-md border-2 border-black flex items-center justify-center mb-4 shadow-[2px_2px_0px_#000] ${step.color}`}>
                   <step.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-white mb-2 text-base uppercase tracking-wide">{step.title}</h3>
+                <h3 className="font-display font-bold text-slate-200 mb-2 text-base uppercase tracking-wide">{step.title}</h3>
                 <p className="text-slate-400 text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
@@ -125,7 +125,7 @@ export default async function HomePage() {
                 <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform select-none">
                   {sport.emoji}
                 </div>
-                <h3 className="font-display font-black text-white text-lg tracking-wide mb-1 uppercase">{sport.label}</h3>
+                <h3 className="font-display font-black text-slate-200 text-lg tracking-wide mb-1 uppercase">{sport.label}</h3>
                 <div className="mt-3 text-xs font-bold text-slate-400 flex items-center justify-center gap-1 group-hover:text-cyan-400 transition-colors">
                   Explore <ChevronRight className="w-3.5 h-3.5 stroke-[3px]" />
                 </div>
@@ -210,14 +210,14 @@ export default async function HomePage() {
           <div className="bg-slate-900 border-3 border-black rounded-lg p-8 md:p-12 shadow-[6px_6px_0px_#000]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 bg-[#080a10] border-2 border-black mb-4 shadow-[2px_2px_0px_#000]">
+                <div className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 bg-slate-950 border-2 border-black mb-4 shadow-[2px_2px_0px_#000]">
                   <TrendingUp className="w-3.5 h-3.5 text-yellow-400" />
                   <span className="text-xs text-yellow-400 font-extrabold uppercase tracking-wider">Smart Pricing</span>
                 </div>
                 <h2 className="font-display text-3xl font-black mb-4 uppercase tracking-tight">
-                  <span className="text-white">Save up to </span>
+                  <span className="text-slate-200">Save up to </span>
                   <span className="gradient-text-sport">15%</span>
-                  <br /><span className="text-white">with smart timing</span>
+                  <br /><span className="text-slate-200">with smart timing</span>
                 </h2>
                 <p className="text-slate-300 leading-relaxed font-medium">
                   Our AI knows when prices are lowest. Book afternoon slots to save significantly over peak evening rates.
@@ -229,14 +229,14 @@ export default async function HomePage() {
                   { label: 'Afternoon', time: '11 AM–4 PM', icon: '☀️', price: '15% Off', color: 'border-emerald-500/30', badge: 'BEST VALUE' },
                   { label: 'Evening', time: '5–10 PM', icon: '🌆', price: '+30%', color: 'border-red-500/30', badge: 'PEAK' },
                 ].map((slot) => (
-                  <div key={slot.label} className={`bg-[#080a10] border-2 border-black rounded-lg p-4 text-center shadow-[3px_3px_0px_#000] relative`}>
+                  <div key={slot.label} className={`bg-slate-950 border-2 border-black rounded-lg p-4 text-center shadow-[3px_3px_0px_#000] relative`}>
                     {slot.badge && (
                       <div className={`text-[10px] font-black uppercase mb-2 inline-block border-2 border-black px-2 py-0.5 rounded-md ${slot.badge === 'BEST VALUE' ? 'bg-emerald-400 text-black' : 'bg-rose-400 text-black'}`}>
                         {slot.badge}
                       </div>
                     )}
                     <div className="text-2xl mb-2 select-none">{slot.icon}</div>
-                    <div className="font-display font-bold text-white text-sm uppercase">{slot.label}</div>
+                    <div className="font-display font-bold text-slate-200 text-sm uppercase">{slot.label}</div>
                     <div className="text-xs text-slate-400 mt-1">{slot.time}</div>
                     <div className={`text-sm font-extrabold mt-2 ${slot.badge === 'BEST VALUE' ? 'text-emerald-400' : slot.badge === 'PEAK' ? 'text-rose-400' : 'text-cyan-400'}`}>
                       {slot.price}
@@ -275,7 +275,7 @@ export default async function HomePage() {
                     {review.name[0]}
                   </div>
                   <div>
-                    <div className="text-white text-sm font-bold">{review.name}</div>
+                    <div className="text-slate-200 text-sm font-bold">{review.name}</div>
                     <div className="text-slate-500 text-xs font-bold uppercase">{review.sport}</div>
                   </div>
                 </div>

@@ -144,3 +144,67 @@ export function generateTimeSlots(
 
   return slots;
 }
+
+/**
+ * Checks if a slot on a given date is in the past
+ */
+export function isSlotInPast(dateStr: string, slotStr: string, referenceTime?: Date): boolean {
+  try {
+    const now = referenceTime || new Date();
+    
+    // YYYY-MM-DD in local time
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
+    if (dateStr < todayStr) {
+      return true;
+    }
+
+    if (dateStr === todayStr) {
+      const parts = slotStr.split(/[–-]/);
+      if (parts.length >= 2) {
+        const endTimeStr = parts[1].trim(); // e.g. "12:00"
+        const [endH, endM] = endTimeStr.split(':').map(Number);
+        
+        const slotEndTime = new Date(now);
+        slotEndTime.setHours(endH, endM, 0, 0);
+        
+        return slotEndTime.getTime() <= now.getTime();
+      }
+    }
+  } catch (e) {
+    console.error('Error checking isSlotInPast:', e);
+  }
+  return false;
+}
+
+/**
+ * Derives the real-time booking lifecycle status
+ */
+export function getBookingLifecycle(
+  booking: { date: string; slot: string; bookingStatus?: string; status?: string; paymentStatus?: string },
+  referenceTime?: Date
+): 'upcoming' | 'completed' | 'expired' | 'cancelled' {
+  const bStatus = (booking.bookingStatus || booking.status || '').toLowerCase();
+  
+  if (bStatus === 'cancelled') {
+    return 'cancelled';
+  }
+
+  // Check if slot has passed
+  const passed = isSlotInPast(booking.date, booking.slot, referenceTime);
+
+  if (!passed) {
+    return 'upcoming';
+  } else {
+    // If it passed, check if it was paid/confirmed/verified
+    const isSuccess = 
+      bStatus === 'confirmed' || 
+      booking.paymentStatus === 'paid' || 
+      booking.paymentStatus === 'verification_pending';
+    
+    return isSuccess ? 'completed' : 'expired';
+  }
+}

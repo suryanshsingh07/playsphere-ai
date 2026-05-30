@@ -17,6 +17,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './config';
+import { isSlotInPast } from '@/shared/helpers/pricing';
 import { Venue, Booking, UserProfile, VenueFilters, ApprovalStatus, Landmark, Infrastructure, OwnershipRequest } from '@/shared/types';
 import { generateTicketId } from '@/shared/helpers/ticket';
 
@@ -153,6 +154,9 @@ export async function getUserBookings(userId: string): Promise<Booking[]> {
 }
 
 export async function createBooking(booking: Omit<Booking, 'id' | 'bookingId' | 'createdAt'>): Promise<string> {
+  if (isSlotInPast(booking.date, booking.slot)) {
+    throw new Error("This slot has already passed.");
+  }
   const docRef = doc(collection(db, 'bookings'));
   const bookingId = docRef.id;
   const bookingData = {
@@ -321,6 +325,9 @@ export async function getVenueBookings(venueId: string, date: string): Promise<B
 }
 
 export async function checkSlotAvailability(venueId: string, date: string, slot: string): Promise<boolean> {
+  if (isSlotInPast(date, slot)) {
+    return false;
+  }
   const bookings = await getVenueBookings(venueId, date);
   return !bookings.some(b => b.slot === slot);
 }

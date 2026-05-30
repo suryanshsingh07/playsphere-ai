@@ -259,7 +259,7 @@ function ActiveVenueMap({ items }: VenueMapProps) {
             }}
           >
             {/* Custom popup UI - exact same modern cards as Mapbox v8 */}
-            <div className="rounded-lg overflow-hidden bg-[#0f172a] border-2 border-black shadow-[4px_4px_0px_#000] min-w-[220px] max-w-[280px] text-white">
+            <div className="rounded-lg overflow-hidden bg-slate-900 border-2 border-black shadow-[4px_4px_0px_#000] min-w-[220px] max-w-[280px] text-slate-200">
               {/* Image Header (if applicable) */}
               {selectedItem.mapType !== 'landmark' && selectedItem.imageUrl && (
                 <div className="relative h-28 overflow-hidden">
@@ -289,7 +289,7 @@ function ActiveVenueMap({ items }: VenueMapProps) {
 
               {/* Popup Content */}
               <div className="p-3">
-                <h4 className="font-extrabold text-sm mb-1 font-sans text-white">
+                <h4 className="font-extrabold text-sm mb-1 font-sans text-slate-200">
                   {selectedItem.name}
                 </h4>
                 <div className="text-slate-400 text-xs mb-2 flex items-center gap-1">
@@ -351,7 +351,7 @@ function ActiveVenueMap({ items }: VenueMapProps) {
                     <div className="bg-amber-950/40 border border-amber-500/30 p-2 rounded text-xs mb-2">
                       <span className="text-[#fbbf24] font-bold">★ Sports Hub Area</span>
                       <div className="text-slate-300 mt-1">
-                        Nearby sports facilities: <strong className="text-white">{nearbySportsCount} found</strong> within 3km.
+                        Nearby sports facilities: <strong className="text-slate-200">{nearbySportsCount} found</strong> within 3km.
                       </div>
                     </div>
                     <p className="text-[11px] text-slate-400 leading-normal mb-0">
@@ -366,7 +366,7 @@ function ActiveVenueMap({ items }: VenueMapProps) {
       </GoogleMap>
 
       {/* Map Stats Badge */}
-      <div className="absolute top-3 left-3 bg-slate-900 border-2 border-black rounded-md px-3 py-1.5 text-xs font-bold text-white shadow-[3px_3px_0px_0px_#000] pointer-events-none">
+      <div className="absolute top-3 left-3 bg-slate-900 border-2 border-black rounded-md px-3 py-1.5 text-xs font-bold text-slate-200 shadow-[3px_3px_0px_0px_#000] pointer-events-none">
         <MapPin className="w-3.5 h-3.5 inline mr-1.5 text-cyan-400" />
         {activeMarketplaceCount} active venues ({mappedInfraCount} mapped)
       </div>

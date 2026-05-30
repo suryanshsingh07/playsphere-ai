@@ -100,7 +100,7 @@ export default function SignupPage() {
             </div>
             <span className="gradient-text [text-shadow:1.5px_1.5px_0px_#000]">PlaySphere AI</span>
           </Link>
-          <h1 className="font-display text-2xl font-black text-white mt-2 uppercase tracking-wide">Create your account</h1>
+          <h1 className="font-display text-2xl font-black text-slate-200 mt-2 uppercase tracking-wide">Create your account</h1>
           <p className="text-slate-400 text-sm mt-1 font-medium">Join the AI-powered sports marketplace for Lucknow</p>
         </div>
 
@@ -130,7 +130,7 @@ export default function SignupPage() {
                   )}>
                     {card.icon}
                   </div>
-                  <span className="font-display font-black text-white text-sm">{card.label}</span>
+                  <span className="font-display font-black text-slate-200 text-sm">{card.label}</span>
                   <span className="text-slate-400 text-xs leading-tight">{card.description}</span>
                   <span className={cn('text-xs font-bold px-2 py-0.5 rounded border border-black shadow-[1px_1px_0px_#000]', card.badgeColor)}>
                     {card.badge}
@@ -223,7 +223,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>

@@ -66,7 +66,7 @@ export default function LoginPage() {
             </div>
             <span className="gradient-text [text-shadow:1.5px_1.5px_0px_#000]">PlaySphere AI</span>
           </Link>
-          <h1 className="font-display text-2xl font-black text-white mt-2 uppercase tracking-wide">Welcome back</h1>
+          <h1 className="font-display text-2xl font-black text-slate-200 mt-2 uppercase tracking-wide">Welcome back</h1>
           <p className="text-slate-400 text-sm mt-1 font-medium">Sign in to continue your sports journey</p>
         </div>
 
@@ -125,7 +125,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>

@@ -96,6 +96,8 @@ export interface Booking {
   ticketId: string;          // replaces ticketNumber
   createdAt?: Timestamp | Date;
 
+  bookingLifecycle?: 'upcoming' | 'completed' | 'expired' | 'cancelled';
+
   // Legacy compatibility fields
   userId?: string;
   price?: number;

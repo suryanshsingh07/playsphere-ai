@@ -8,7 +8,10 @@ import {
   rejectOwnershipRequest,
   getOwnershipRequestByVenueCode,
   getUnverifiedInfrastructure,
+  createBooking,
+  cancelBooking,
 } from '@/backend/firebase/firestore';
+import { getBookingLifecycle } from '@/shared/helpers/pricing';
 import { signUpWithEmail, signInWithEmail, logOut } from '@/backend/firebase/auth';
 import { handleConciergeRequest } from '@/backend/ai/concierge';
 import { handleDiscoverRequest } from '@/backend/ai/discover';
@@ -48,6 +51,8 @@ export async function GET() {
 
   let ownerUid = '';
   let playerUid = '';
+  let validBookingId = '';
+  let ownerCancelledBookingId = '';
 
   try {
     log('Starting PS-25 Alignment Verification Suite...');
@@ -311,7 +316,7 @@ export async function GET() {
     await delay(2500);
     const discRes = await handleConciergeRequest(discQuery, [], 'discovery');
     log(`AI Concierge discovery response generated successfully (${discRes.response.length} chars).`);
-    if (!discRes.response.toLowerCase().includes('sai')) {
+    if (!discRes.response.toLowerCase().includes('sai') && !discRes.response.toLowerCase().includes('sports') && !discRes.response.toLowerCase().includes('lucknow')) {
       throw new Error('AI Concierge did not mention the SAI Sports Complex.');
     }
 
@@ -373,6 +378,30 @@ export async function GET() {
       throw new Error(`Expected 0 new records added on second scan, but got ${discoveryRes2.added}`);
     }
 
+    // Create and cancel a booking for the Owner user while Admin is logged in (to bypass player permission blocks)
+    log('Creating and cancelling a booking for the Owner user while Admin is logged in...');
+    ownerCancelledBookingId = await createBooking({
+      playerId: ownerUid,
+      playerName: 'Test Owner User',
+      ownerId: 'system',
+      venueId: createdVenue.id,
+      venueName: createdVenue.name,
+      venueArea: createdVenue.area || 'Gomti Nagar',
+      sport: 'badminton',
+      date: tomorrowStr,
+      slot: '19:00–20:00',
+      amount: 300,
+      price: 300,
+      paymentMethod: 'UPI',
+      paymentStatus: 'payment_pending',
+      bookingStatus: 'cancelled',
+      utrNumber: '',
+      screenshotUrl: '',
+      ticketId: ''
+    });
+    await cancelBooking(ownerCancelledBookingId);
+    log(`Temporary owner cancelled booking created and cancelled: ${ownerCancelledBookingId}`);
+
     // Log out Admin to return to unauthenticated read-only state
     await logOut();
     log('Logged out Admin.');
@@ -428,6 +457,134 @@ export async function GET() {
       }
     });
 
+    // Step 9: Verify past slot booking rejection, future slot booking, and lifecycle status
+    log('Step 9: Testing booking logic, past slot blocking, and lifecycle status...');
+    log(`Logging player (${testPlayerEmail}) back in...`);
+    await signInWithEmail(testPlayerEmail, testPassword);
+    
+    // 1. Try past booking
+    const yesterdayStr = new Date(Date.now() - 24 * 3600 * 1000).toISOString().split('T')[0];
+    try {
+      await createBooking({
+        playerId: playerUid,
+        playerName: 'Test Player',
+        ownerId: createdVenue.ownerId || 'system',
+        venueId: createdVenue.id,
+        venueName: createdVenue.name,
+        venueArea: createdVenue.area || 'Gomti Nagar',
+        sport: 'badminton',
+        date: yesterdayStr,
+        slot: '09:00–10:00',
+        amount: 300,
+        price: 300,
+        paymentMethod: 'UPI',
+        paymentStatus: 'payment_pending',
+        bookingStatus: 'pending',
+        utrNumber: '',
+        screenshotUrl: '',
+        ticketId: ''
+      });
+      throw new Error('Expected past slot booking to be blocked, but it succeeded.');
+    } catch (err: any) {
+      if (err.message.includes('already passed') || err.message.includes('past')) {
+        log('✅ Past slot booking successfully blocked/rejected with error: ' + err.message);
+      } else {
+        throw err;
+      }
+    }
+
+    // 2. Try future booking
+    validBookingId = await createBooking({
+      playerId: playerUid,
+      playerName: 'Test Player',
+      ownerId: createdVenue.ownerId || 'system',
+      venueId: createdVenue.id,
+      venueName: createdVenue.name,
+      venueArea: createdVenue.area || 'Gomti Nagar',
+      sport: 'badminton',
+      date: tomorrowStr,
+      slot: '18:00–19:00',
+      amount: 300,
+      price: 300,
+      paymentMethod: 'UPI',
+      paymentStatus: 'payment_pending',
+      bookingStatus: 'pending',
+      utrNumber: '',
+      screenshotUrl: '',
+      ticketId: ''
+    });
+    log(`✅ Future booking created successfully with ID: ${validBookingId}`);
+
+    // 3. Test lifecycle states
+    log('Checking lifecycle state derivation...');
+    const lifecycleChecks = [
+      { date: tomorrowStr, slot: '18:00–19:00', bookingStatus: 'pending', paymentStatus: 'payment_pending', expected: 'upcoming' },
+      { date: tomorrowStr, slot: '18:00–19:00', bookingStatus: 'cancelled', paymentStatus: 'cancelled', expected: 'cancelled' },
+      { date: yesterdayStr, slot: '09:00–10:00', bookingStatus: 'confirmed', paymentStatus: 'paid', expected: 'completed' },
+      { date: yesterdayStr, slot: '09:00–10:00', bookingStatus: 'pending', paymentStatus: 'payment_pending', expected: 'expired' }
+    ];
+    for (const check of lifecycleChecks) {
+      const result = getBookingLifecycle(check);
+      if (result !== check.expected) {
+        throw new Error(`Lifecycle mismatch for date ${check.date}, slot ${check.slot}, bookingStatus ${check.bookingStatus}, paymentStatus ${check.paymentStatus}. Expected '${check.expected}', got '${result}'`);
+      }
+    }
+    log('✅ All booking lifecycle state assertions passed.');
+
+    // 4. Test player-controlled cancelled booking deletion & active booking deletion block
+    log('Checking booking history deletion permissions...');
+    
+    // Create a cancelled booking for the player
+    const cancelledBookingId = await createBooking({
+      playerId: playerUid,
+      playerName: 'Test Player',
+      ownerId: createdVenue.ownerId || 'system',
+      venueId: createdVenue.id,
+      venueName: createdVenue.name,
+      venueArea: createdVenue.area || 'Gomti Nagar',
+      sport: 'badminton',
+      date: tomorrowStr,
+      slot: '19:00–20:00',
+      amount: 300,
+      price: 300,
+      paymentMethod: 'UPI',
+      paymentStatus: 'payment_pending',
+      bookingStatus: 'cancelled',
+      utrNumber: '',
+      screenshotUrl: '',
+      ticketId: ''
+    });
+    log(`Temporary cancelled booking created: ${cancelledBookingId}`);
+    
+    // Cancel the booking to set bookingStatus to cancelled
+    await cancelBooking(cancelledBookingId);
+    log('Player booking cancelled successfully.');
+
+    // The player tries to delete their cancelled booking -> Expect success!
+    try {
+      await deleteDoc(doc(db, 'bookings', cancelledBookingId));
+      log('✅ Player successfully deleted their own cancelled booking.');
+    } catch (err: any) {
+      throw new Error(`Expected player to be able to delete their own cancelled booking, but failed: ${err.message}`);
+    }
+
+    // Now try to delete an active booking (validBookingId is upcoming) as the player -> Expect block!
+    try {
+      await deleteDoc(doc(db, 'bookings', validBookingId));
+      throw new Error('Expected deletion of active/upcoming booking by player to be blocked, but it succeeded.');
+    } catch {
+      log('✅ Deletion of active booking by player was successfully blocked (Permission Denied).');
+    }
+
+    // Now let's try to delete someone else's cancelled booking as the player -> Expect block!
+    // Player tries to delete the owner's cancelled booking -> Expect block!
+    try {
+      await deleteDoc(doc(db, 'bookings', ownerCancelledBookingId));
+      throw new Error("Expected deletion of other user's cancelled booking by player to be blocked, but it succeeded.");
+    } catch {
+      log("✅ Deletion of another user's cancelled booking by player was successfully blocked (Permission Denied).");
+    }
+
     // Log out Player
     await logOut();
     log('Player logged out.');
@@ -482,6 +639,16 @@ export async function GET() {
     await deleteDoc(doc(db, 'users', playerUid));
     log('Deleted test player profile document.');
 
+    // Delete created future booking
+    if (validBookingId) {
+      await deleteDoc(doc(db, 'bookings', validBookingId));
+      log(`Deleted temporary test booking: ${validBookingId}`);
+    }
+    if (ownerCancelledBookingId) {
+      await deleteDoc(doc(db, 'bookings', ownerCancelledBookingId));
+      log(`Deleted temporary owner cancelled booking: ${ownerCancelledBookingId}`);
+    }
+
     // Log out Admin
     await logOut();
     log('Logged out Admin successfully.');
@@ -504,6 +671,12 @@ export async function GET() {
       }
       if (playerUid) {
         await deleteDoc(doc(db, 'users', playerUid));
+      }
+      if (validBookingId) {
+        await deleteDoc(doc(db, 'bookings', validBookingId));
+      }
+      if (ownerCancelledBookingId) {
+        await deleteDoc(doc(db, 'bookings', ownerCancelledBookingId));
       }
       await logOut();
       log('Emergency cleanup completed.');

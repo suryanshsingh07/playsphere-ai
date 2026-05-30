@@ -129,7 +129,7 @@ export default function BookingPaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center bg-[#0B0F19]">
+      <div className="min-h-screen pt-24 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mx-auto mb-4" />
           <p className="text-slate-400 font-medium">Loading secure payment screen...</p>
@@ -140,10 +140,10 @@ export default function BookingPaymentPage() {
 
   if (error && !booking) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center bg-[#0B0F19]">
+      <div className="min-h-screen pt-24 flex items-center justify-center">
         <div className="max-w-md w-full glass p-8 rounded-lg text-center border-2 border-black">
           <AlertCircle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-bold text-white mb-2">Error</h2>
+          <h2 className="font-display text-xl font-bold text-slate-200 mb-2">Error</h2>
           <p className="text-slate-400 mb-6">{error}</p>
           <Link href="/dashboard" className="btn-secondary">Go to Dashboard</Link>
         </div>
@@ -157,16 +157,16 @@ export default function BookingPaymentPage() {
   const finalQrUrl = qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${upiId}&pn=PlaySphere&am=${booking.amount}&cu=INR`)}`;
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-[#0B0F19]">
+    <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-3xl mx-auto px-4">
         
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <Link href="/dashboard" className="p-2 bg-slate-900 rounded-md border border-black hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+          <Link href="/dashboard" className="p-2 bg-slate-900 rounded-md border border-black hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">Complete Payment</h1>
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-slate-200 tracking-tight">Complete Payment</h1>
             <p className="text-slate-400 text-xs mt-0.5">Booking ID: {booking.bookingId}</p>
           </div>
         </div>
@@ -182,15 +182,15 @@ export default function BookingPaymentPage() {
               <div className="space-y-2.5">
                 <div className="flex justify-between">
                   <span className="text-slate-400 text-sm">Venue</span>
-                  <span className="text-white font-semibold text-sm">{booking.venueName}</span>
+                  <span className="text-slate-200 font-semibold text-sm">{booking.venueName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400 text-sm">Date</span>
-                  <span className="text-white font-medium text-sm">{booking.date}</span>
+                  <span className="text-slate-200 font-medium text-sm">{booking.date}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400 text-sm">Time Slot</span>
-                  <span className="text-white font-medium text-sm">{booking.slot}</span>
+                  <span className="text-slate-200 font-medium text-sm">{booking.slot}</span>
                 </div>
                 <div className="h-px bg-black/40 my-2" />
                 <div className="flex justify-between items-center">
@@ -202,7 +202,7 @@ export default function BookingPaymentPage() {
 
             {/* UPI Details */}
             <div className="glass rounded-lg p-6 border-2 border-black flex flex-col items-center">
-              <h2 className="font-display font-bold text-white text-base mb-4 text-center">Scan to Pay using UPI</h2>
+              <h2 className="font-display font-bold text-slate-200 text-base mb-4 text-center">Scan to Pay using UPI</h2>
               
               {/* QR Image */}
               <div className="bg-white p-3 rounded-lg border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-5">
@@ -217,11 +217,11 @@ export default function BookingPaymentPage() {
                   }}
                 />
               </div>
-
+ 
               {/* UPI ID Copy Field */}
               <div className="w-full">
                 <label htmlFor="upi-address" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5 text-center">UPI Address</label>
-                <div className="flex bg-[#121620] border-2 border-black rounded-md overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex bg-slate-900 border-2 border-black rounded-md overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   <input 
                     id="upi-address"
                     type="text" 
@@ -229,7 +229,7 @@ export default function BookingPaymentPage() {
                     value={upiId} 
                     title="UPI Address"
                     placeholder="UPI Address"
-                    className="bg-transparent border-0 px-3 py-2 text-sm text-white font-mono flex-grow focus:outline-none focus:ring-0"
+                    className="bg-transparent border-0 px-3 py-2 text-sm text-slate-200 font-mono flex-grow focus:outline-none focus:ring-0"
                   />
                   <button 
                     type="button" 
@@ -259,7 +259,7 @@ export default function BookingPaymentPage() {
           {/* Right: Submit Proof Form (2 cols) */}
           <div className="md:col-span-2">
             <form onSubmit={handleSubmit} className="glass rounded-lg p-6 border-2 border-black space-y-5 sticky top-24">
-              <h2 className="font-display font-bold text-white text-base">Submit Payment Proof</h2>
+              <h2 className="font-display font-bold text-slate-200 text-base">Submit Payment Proof</h2>
               
               {error && (
                 <div className="bg-rose-500/20 border border-rose-500/50 rounded-md p-3 text-xs text-rose-300 flex items-start gap-2">
@@ -267,7 +267,7 @@ export default function BookingPaymentPage() {
                   <span>{error}</span>
                 </div>
               )}
-
+ 
               {/* UTR Input */}
               <div>
                 <label htmlFor="utr-number" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
@@ -280,17 +280,17 @@ export default function BookingPaymentPage() {
                   placeholder="e.g. 12-digit UPI Ref No."
                   value={utrNumber}
                   onChange={(e) => setUtrNumber(e.target.value)}
-                  className="w-full bg-[#121620] border-2 border-black rounded-md px-3.5 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                  className="w-full font-mono"
                 />
                 <p className="text-[10px] text-slate-500 mt-1">Enter the 12-digit number from your payment confirmation screen.</p>
               </div>
-
+ 
               {/* Screenshot Upload */}
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
                   Upload Screenshot <span className="text-slate-500 font-normal">(Optional)</span>
                 </label>
-                <div className="relative border-2 border-dashed border-black hover:border-cyan-400/40 rounded-md p-4 bg-[#121620] transition-colors text-center cursor-pointer group">
+                <div className="relative border-2 border-dashed border-black hover:border-cyan-400/40 rounded-md p-4 bg-slate-900 transition-colors text-center cursor-pointer group">
                   <input 
                     type="file" 
                     accept="image/*"

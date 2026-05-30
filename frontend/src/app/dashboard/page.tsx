@@ -9,11 +9,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
 import { cancelBooking, getVenuesByIds } from '@/backend/firebase/firestore';
-import { onSnapshot, query, collection, where } from 'firebase/firestore';
+import { onSnapshot, query, collection, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/backend/firebase/config';
 import { Booking, Venue } from '@/shared/types';
 import { formatCurrency, formatDate, getSportEmoji, cn } from '@/shared/helpers/utils';
 import { AIConciergePreview } from '@/components/ai/AIConciergePreview';
+import { getBookingLifecycle } from '@/shared/helpers/pricing';
 
 type DashboardTab = 'bookings' | 'saved' | 'ai' | 'profile';
 
@@ -78,6 +79,8 @@ export default function DashboardPage() {
     return () => { active = false; };
   }, [profile?.savedVenues]);
 
+  const [deleting, setDeleting] = useState<string | null>(null);
+
   const handleCancel = async (bookingId: string) => {
     setCancelling(bookingId);
     try {
@@ -87,13 +90,23 @@ export default function DashboardPage() {
     }
   };
 
-  const upcoming = bookings.filter((b) => {
-    const bStatus = (b.bookingStatus || b.status) as string;
-    return bStatus === 'pending' || bStatus === 'confirmed' || bStatus === 'upcoming';
-  });
+  const handleDelete = async (bookingId: string) => {
+    if (!window.confirm('Are you sure you want to remove this cancelled booking from your history?')) return;
+    setDeleting(bookingId);
+    try {
+      await deleteDoc(doc(db, 'bookings', bookingId));
+    } catch (e: any) {
+      console.error('Delete error:', e);
+      alert('Failed to delete booking: ' + e.message);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const upcoming = bookings.filter((b) => getBookingLifecycle(b) === 'upcoming');
   const history = bookings.filter((b) => {
-    const bStatus = (b.bookingStatus || b.status) as string;
-    return bStatus === 'cancelled' || bStatus === 'completed';
+    const lifecycle = getBookingLifecycle(b);
+    return lifecycle === 'completed' || lifecycle === 'expired' || lifecycle === 'cancelled';
   });
 
   if (loading) {
@@ -130,10 +143,10 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Upcoming', value: bookings.filter((b) => ((b.bookingStatus || b.status) as string) === 'confirmed' || ((b.bookingStatus || b.status) as string) === 'upcoming').length, color: 'text-cyan-400' },
-            { label: 'Completed', value: bookings.filter((b) => (b.bookingStatus || b.status) === 'completed').length, color: 'text-emerald-400' },
-            { label: 'Cancelled', value: bookings.filter((b) => (b.bookingStatus || b.status) === 'cancelled').length, color: 'text-red-400' },
-            { label: 'Total Spent', value: `₹${bookings.filter(b => (b.bookingStatus || b.status) !== 'cancelled').reduce((s, b) => s + (b.amount !== undefined ? b.amount : (b.price || 0)), 0)}`, color: 'text-amber-400' },
+            { label: 'Upcoming', value: bookings.filter((b) => getBookingLifecycle(b) === 'upcoming').length, color: 'text-cyan-400' },
+            { label: 'Completed', value: bookings.filter((b) => getBookingLifecycle(b) === 'completed').length, color: 'text-emerald-400' },
+            { label: 'Cancelled', value: bookings.filter((b) => getBookingLifecycle(b) === 'cancelled').length, color: 'text-red-400' },
+            { label: 'Total Spent', value: `₹${bookings.filter(b => getBookingLifecycle(b) !== 'cancelled').reduce((s, b) => s + (b.amount !== undefined ? b.amount : (b.price || 0)), 0)}`, color: 'text-amber-400' },
           ].map((stat) => (
             <div key={stat.label} className="glass rounded-lg p-4 text-center border-2 border-black shadow-[3px_3px_0px_0px_#000]">
               <div className={`font-display text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -152,7 +165,7 @@ export default function DashboardPage() {
                 'flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold whitespace-nowrap transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
                 tab === t.id
                   ? 'bg-cyan-400 text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] translate-x-0.5 translate-y-0.5'
-                  : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
               )}
             >
               {t.icon} {t.label}
@@ -168,7 +181,7 @@ export default function DashboardPage() {
             ) : bookings.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-5xl mb-4">📅</div>
-                <h3 className="font-display text-xl font-bold text-white mb-2">No bookings yet</h3>
+                <h3 className="font-display text-xl font-bold text-slate-200 mb-2">No bookings yet</h3>
                 <p className="text-slate-400 mb-6">Start exploring venues and book your first session!</p>
                 <Link href="/venues" className="btn-primary">Explore Venues</Link>
               </div>
@@ -180,7 +193,7 @@ export default function DashboardPage() {
                       <div className="w-2.5 h-2.5 bg-cyan-400 border border-black shadow-[1px_1px_0px_#000]" /> Upcoming ({upcoming.length})
                     </h2>
                     {upcoming.map((booking) => (
-                      <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} cancelling={cancelling} />
+                      <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} cancelling={cancelling} onDelete={handleDelete} deleting={deleting} />
                     ))}
                   </div>
                 )}
@@ -188,7 +201,7 @@ export default function DashboardPage() {
                   <div className="mt-6">
                     <h2 className="font-display font-bold text-slate-400 mb-3">History</h2>
                     {history.map((booking) => (
-                      <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} cancelling={cancelling} />
+                      <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} cancelling={cancelling} onDelete={handleDelete} deleting={deleting} />
                     ))}
                   </div>
                 )}
@@ -205,7 +218,7 @@ export default function DashboardPage() {
             ) : savedVenues.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-5xl mb-4">🔖</div>
-                <h3 className="font-display text-xl font-bold text-white mb-2">No saved venues</h3>
+                <h3 className="font-display text-xl font-bold text-slate-200 mb-2">No saved venues</h3>
                 <p className="text-slate-400 mb-6">Bookmark venues while browsing to save them here</p>
                 <Link href="/venues" className="btn-primary">Browse Venues</Link>
               </div>
@@ -215,7 +228,7 @@ export default function DashboardPage() {
                   <Link key={v.id} href={`/venues/${v.id}`} className="glass rounded-lg p-4 card-hover border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_#facc15] block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={v.imageUrl} alt={v.name} className="w-full h-32 object-cover rounded-md mb-3 border-2 border-black" />
-                    <h3 className="font-display font-bold text-white mb-1">{v.name}</h3>
+                    <h3 className="font-display font-bold text-slate-200 mb-1">{v.name}</h3>
                     <p className="text-slate-400 text-sm mb-2">{v.area}</p>
                     <div className="flex items-center justify-between border-t border-black/30 pt-2 mt-2">
                       <span className="text-cyan-400 font-bold">{formatCurrency(v.price)}/hr</span>
@@ -245,28 +258,28 @@ export default function DashboardPage() {
                 {profile?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || 'P'}
               </div>
               <div>
-                <h2 className="font-display text-xl font-bold text-white">{profile?.displayName || 'Player'}</h2>
+                <h2 className="font-display text-xl font-bold text-slate-200">{profile?.displayName || 'Player'}</h2>
                 <p className="text-slate-400">{user?.email}</p>
               </div>
             </div>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-3 border-b border-black/30">
                 <span className="text-slate-400">Account Type</span>
-                <span className="text-white font-bold capitalize bg-slate-900 border border-black px-2.5 py-1 rounded-md shadow-[1px_1px_0px_#000]">
+                <span className="text-slate-200 font-bold capitalize bg-slate-900 border border-black px-2.5 py-1 rounded-md shadow-[1px_1px_0px_#000]">
                   {profile?.role === 'player' ? '🏃 Player' : profile?.role === 'owner' ? '🏢 Owner' : profile?.role || 'player'}
                 </span>
               </div>
               <div className="flex justify-between py-3 border-b border-black/30">
                 <span className="text-slate-400">Total Bookings</span>
-                <span className="text-white font-bold">{bookings.length}</span>
+                <span className="text-slate-200 font-bold">{bookings.length}</span>
               </div>
               <div className="flex justify-between py-3 border-b border-black/30">
                 <span className="text-slate-400">Saved Venues</span>
-                <span className="text-white font-bold">{profile?.savedVenues?.length || 0}</span>
+                <span className="text-slate-200 font-bold">{profile?.savedVenues?.length || 0}</span>
               </div>
               <div className="flex justify-between py-3">
                 <span className="text-slate-400">Total Spent</span>
-                <span className="text-white font-bold">{formatCurrency(bookings.filter(b => (b.bookingStatus || b.status) !== 'cancelled').reduce((s, b) => s + (b.amount !== undefined ? b.amount : (b.price || 0)), 0))}</span>
+                <span className="text-slate-200 font-bold">{formatCurrency(bookings.filter(b => (b.bookingStatus || b.status) !== 'cancelled').reduce((s, b) => s + (b.amount !== undefined ? b.amount : (b.price || 0)), 0))}</span>
               </div>
             </div>
           </div>
@@ -280,21 +293,28 @@ function BookingCard({
   booking,
   onCancel,
   cancelling,
+  onDelete,
+  deleting,
 }: {
   booking: Booking;
   onCancel: (id: string) => void;
   cancelling: string | null;
+  onDelete?: (id: string) => void;
+  deleting?: string | null;
 }) {
-  let statusText = 'Pending';
-  let statusClass = 'text-black bg-amber-400 border-black shadow-[2px_2px_0px_#000]';
+  const lifecycle = getBookingLifecycle(booking);
+  const pStatus = booking.paymentStatus;
+  
+  let statusText = 'Upcoming';
+  let statusClass = 'text-black bg-cyan-400 border-black shadow-[2px_2px_0px_#000]';
   let showPayButton = false;
   let showRetryButton = false;
   let showCancelButton = false;
+  let showPlayedDate = false;
 
   const bStatus = (booking.bookingStatus || booking.status) as string;
-  const pStatus = booking.paymentStatus;
 
-  if (bStatus === 'cancelled') {
+  if (lifecycle === 'cancelled') {
     if (pStatus === 'refund_pending') {
       statusText = 'Refund Pending';
       statusClass = 'text-black bg-pink-400 border-black shadow-[2px_2px_0px_#000]';
@@ -302,10 +322,15 @@ function BookingCard({
       statusText = 'Cancelled';
       statusClass = 'text-black bg-rose-400 border-black shadow-[2px_2px_0px_#000]';
     }
-  } else if (bStatus === 'completed') {
+  } else if (lifecycle === 'completed') {
     statusText = 'Completed';
-    statusClass = 'text-black bg-emerald-400 border-black shadow-[2px_2px_0px_#000]';
+    statusClass = 'text-white bg-slate-700 border-black shadow-[2px_2px_0px_#000]';
+    showPlayedDate = true;
+  } else if (lifecycle === 'expired') {
+    statusText = 'Expired';
+    statusClass = 'text-slate-400 bg-slate-900 border-slate-700 shadow-none border-dashed';
   } else {
+    // lifecycle === 'upcoming'
     if (pStatus === 'payment_pending') {
       statusText = 'Payment Pending';
       statusClass = 'text-black bg-amber-400 border-black shadow-[2px_2px_0px_#000]';
@@ -316,8 +341,8 @@ function BookingCard({
       statusClass = 'text-black bg-cyan-300 border-black shadow-[2px_2px_0px_#000]';
       showCancelButton = true;
     } else if (pStatus === 'paid' || bStatus === 'confirmed' || bStatus === 'upcoming') {
-      statusText = 'Confirmed';
-      statusClass = 'text-black bg-emerald-400 border-black shadow-[2px_2px_0px_#000]';
+      statusText = 'Upcoming';
+      statusClass = 'text-black bg-cyan-400 border-black shadow-[2px_2px_0px_#000]';
       showCancelButton = true;
     } else if (pStatus === 'rejected') {
       statusText = 'Payment Rejected';
@@ -339,7 +364,7 @@ function BookingCard({
       <div className="flex items-center gap-4 flex-1">
         <div className="text-3xl bg-slate-900 w-12 h-12 flex items-center justify-center rounded-md border border-black shadow-[2px_2px_0px_#000]">{getSportEmoji(booking.sport)}</div>
         <div>
-          <h3 className="font-display font-bold text-white text-base">{booking.venueName}</h3>
+          <h3 className="font-display font-bold text-slate-200 text-base">{booking.venueName}</h3>
           <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
             <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{booking.venueArea}</span>
             <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(booking.date)}</span>
@@ -349,6 +374,11 @@ function BookingCard({
             <div className="flex items-center gap-1.5 mt-1.5">
               <Ticket className="w-3.5 h-3.5 text-cyan-400" />
               <span className="font-mono text-xs text-cyan-400 font-bold tracking-wider">{ticketId}</span>
+            </div>
+          )}
+          {showPlayedDate && (
+            <div className="text-[10px] text-emerald-400 font-extrabold mt-1.5 tracking-wider uppercase">
+              Played on {formatDate(booking.date)}
             </div>
           )}
           {booking.utrNumber && (
@@ -381,7 +411,7 @@ function BookingCard({
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-bold text-white text-lg">{formatCurrency(amount)}</span>
+          <span className="font-bold text-slate-200 text-lg">{formatCurrency(amount)}</span>
           {showCancelButton && (
             <button
               onClick={() => onCancel(booking.id)}
@@ -390,6 +420,16 @@ function BookingCard({
               title="Cancel Booking"
             >
               {cancelling === booking.id ? <Loader2 className="w-4 h-4 animate-spin text-black" /> : <X className="w-4 h-4 stroke-[3px]" />}
+            </button>
+          )}
+          {lifecycle === 'cancelled' && onDelete && (
+            <button
+              onClick={() => onDelete(booking.id)}
+              disabled={deleting === booking.id}
+              className="px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-400 border-2 border-black text-black text-xs font-bold shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50"
+              title="Remove from History"
+            >
+              {deleting === booking.id ? <Loader2 className="w-3.5 h-3.5 animate-spin text-black" /> : 'Remove History'}
             </button>
           )}
         </div>

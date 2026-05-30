@@ -182,7 +182,7 @@ export function VenueForm({ initialData, onSubmit, onCancel, mode }: VenueFormPr
             title="Select Area"
             value={form.area}
             onChange={(e) => update('area', e.target.value)}
-            className="w-full bg-[#121620] border-2 border-black rounded-md px-4 py-2.5 text-sm text-white shadow-[2px_2px_0px_#000]"
+            className="w-full border-2 border-black rounded-md px-4 py-2.5 text-sm shadow-[2px_2px_0px_#000]"
           >
             {AREAS.map((area) => (
               <option key={area} value={area}>{area}</option>
@@ -309,7 +309,7 @@ export function VenueForm({ initialData, onSubmit, onCancel, mode }: VenueFormPr
           title="Description"
           rows={4}
           required
-          className="w-full bg-[#121620] border-2 border-black rounded-md px-4 py-3 text-sm text-white placeholder-slate-500 shadow-[2px_2px_0px_#000] focus:outline-none focus:border-cyan-400"
+          className="w-full border-2 border-black rounded-md px-4 py-3 text-sm placeholder-slate-500 shadow-[2px_2px_0px_#000] focus:outline-none focus:border-cyan-400"
         />
       </div>
 
@@ -350,7 +350,7 @@ export function VenueForm({ initialData, onSubmit, onCancel, mode }: VenueFormPr
           <button
             type="button"
             onClick={addTag}
-            className="px-3 py-2 bg-slate-700 border-2 border-black rounded-md text-xs font-bold text-white hover:bg-slate-600 shadow-[2px_2px_0px_#000] transition-all"
+            className="px-3 py-2 bg-slate-900 border-2 border-black rounded-md text-xs font-bold text-slate-200 hover:bg-slate-800 shadow-[2px_2px_0px_#000] transition-all"
           >
             Add
           </button>
@@ -370,7 +370,7 @@ export function VenueForm({ initialData, onSubmit, onCancel, mode }: VenueFormPr
       {/* Availability Toggle */}
       <div className="flex items-center justify-between glass rounded-md p-4 border-2 border-black">
         <div>
-          <div className="font-bold text-white text-sm">Venue Availability</div>
+          <div className="font-bold text-slate-200 text-sm">Venue Availability</div>
           <div className="text-slate-400 text-xs">Players can discover and book this venue</div>
         </div>
         <button
@@ -380,7 +380,7 @@ export function VenueForm({ initialData, onSubmit, onCancel, mode }: VenueFormPr
           aria-label="Toggle Availability"
           className={cn(
             'w-14 h-7 rounded-full border-2 border-black transition-all shadow-[2px_2px_0px_#000] relative',
-            form.available ? 'bg-emerald-400' : 'bg-slate-700'
+            form.available ? 'bg-emerald-400' : 'bg-slate-900'
           )}
         >
           <div className={cn(

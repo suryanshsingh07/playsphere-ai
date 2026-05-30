@@ -96,7 +96,7 @@ export function VenueCard({ venue, className }: VenueCardProps) {
       <div className="p-5 flex-grow flex flex-col justify-between">
         <div>
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-display font-bold text-white text-base leading-tight flex-1 pr-2">{venue.name}</h3>
+            <h3 className="font-display font-bold text-slate-200 text-base leading-tight flex-1 pr-2">{venue.name}</h3>
             {!isInfra && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -188,7 +188,7 @@ export function VenueCard({ venue, className }: VenueCardProps) {
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xl font-display font-bold text-white">{formatCurrency(venue.price)}</span>
+                <span className="text-xl font-display font-bold text-slate-200">{formatCurrency(venue.price)}</span>
                 <span className="text-slate-500 text-xs ml-1">/hr</span>
               </div>
               <Link

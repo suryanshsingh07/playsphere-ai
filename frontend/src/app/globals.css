@@ -1,25 +1,41 @@
 @import "tailwindcss";
 
+@theme {
+  --color-slate-950: var(--bg-color);
+  --color-slate-900: var(--card-bg);
+  --color-slate-800: var(--card-bg-hover);
+  --color-slate-200: var(--text-color);
+  --color-slate-300: var(--text-muted);
+  --color-slate-400: var(--text-muted);
+  --color-slate-500: var(--text-muted);
+  --color-slate-700: var(--text-muted);
+}
+
 @layer base {
   :root {
     /* Dark Theme (Default) */
     --bg-color: #080a10;
     --text-color: #f8fafc;
+    --text-muted: #94a3b8;
     --card-bg: #121526;
     --card-bg-hover: #1e293b;
     --dot-color: rgba(255, 255, 255, 0.05);
     --input-bg: #121526;
     --border-color: #000000;
+    --accent-glow: rgba(34, 211, 238, 0.15);
   }
   
   .light {
     /* Light Theme */
     --bg-color: #fcfaf7; /* warm neo-brutalist cream */
-    --text-color: #000000;
+    --text-color: #0c0f17;
+    --text-muted: #4b5563;
     --card-bg: #ffffff;
     --card-bg-hover: #f3f4f6;
     --dot-color: rgba(0, 0, 0, 0.08);
     --input-bg: #ffffff;
+    --border-color: #000000;
+    --accent-glow: rgba(34, 211, 238, 0.08);
   }
   
   * {
@@ -44,6 +60,8 @@
   input[type="email"], 
   input[type="password"], 
   input[type="date"], 
+  input[type="url"], 
+  input[type="number"], 
   select, 
   textarea {
     background-color: var(--input-bg) !important;
@@ -132,11 +150,11 @@
   }
 
   .hero-gradient {
-    background-color: #080a10;
-    background-image: radial-gradient(circle at 50% -20%, rgba(34, 211, 238, 0.15) 0%, transparent 60%),
-                      radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-color: var(--bg-color);
+    background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 60%),
+                      radial-gradient(var(--dot-color) 1px, transparent 1px);
     background-size: 100% 100%, 24px 24px;
-    border-bottom: 3px solid #000000;
+    border-bottom: 3px solid var(--border-color);
   }
 
   /* Card Hover Effect */
@@ -298,7 +316,7 @@
 
 /* Custom styling for Google Maps InfoWindow elements to match dark theme */
 .gm-style .gm-style-iw-c {
-  background-color: #0f172a !important;
+  background-color: var(--card-bg) !important;
   border: 2px solid #000000 !important;
   box-shadow: 4px 4px 0px 0px #000000 !important;
   border-radius: 8px !important;
@@ -311,7 +329,7 @@
 }
 
 .gm-style .gm-style-iw-t::after {
-  background: #0f172a !important;
+  background: var(--card-bg) !important;
   box-shadow: -2px 2px 0px 0px #000000 !important;
   border-bottom: 2px solid #000000 !important;
   border-left: 2px solid #000000 !important;

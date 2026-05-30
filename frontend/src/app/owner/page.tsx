@@ -311,7 +311,7 @@ export default function OwnerDashboardPage() {
           <div className="w-20 h-20 rounded-md bg-amber-400 border-2 border-black flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_0px_#000]">
             <Clock className="w-10 h-10 text-black" />
           </div>
-          <h1 className="font-display text-2xl font-black text-white uppercase tracking-wide mb-3">
+          <h1 className="font-display text-2xl font-black text-slate-200 uppercase tracking-wide mb-3">
             Pending Approval
           </h1>
           <p className="text-slate-400 mb-6 leading-relaxed">
@@ -372,7 +372,7 @@ export default function OwnerDashboardPage() {
                 'flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold whitespace-nowrap transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
                 tab === t.id
                   ? 'bg-cyan-400 text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] translate-x-0.5 translate-y-0.5'
-                  : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
               )}
             >
               {t.icon} {t.label}
@@ -400,7 +400,7 @@ export default function OwnerDashboardPage() {
 
             {/* Upcoming bookings summary */}
             <div className="glass rounded-lg p-6 border-2 border-black">
-              <h2 className="font-display font-bold text-white text-lg mb-4 flex items-center gap-2">
+              <h2 className="font-display font-bold text-slate-200 text-lg mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-cyan-400" /> Upcoming Bookings ({upcomingBookings.length})
               </h2>
               {upcomingBookings.length === 0 ? (
@@ -409,7 +409,7 @@ export default function OwnerDashboardPage() {
                 upcomingBookings.slice(0, 5).map((b) => (
                   <div key={b.id} className="flex items-center justify-between py-3 border-b border-black/20 last:border-0">
                     <div>
-                      <div className="text-white font-bold text-sm">{b.venueName}</div>
+                      <div className="text-slate-200 font-bold text-sm">{b.venueName}</div>
                       <div className="text-slate-400 text-xs">{b.playerName || 'Player'} • {formatDate(b.date)} • {b.slot}</div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -425,7 +425,7 @@ export default function OwnerDashboardPage() {
 
             {/* Payout Settings Card */}
             <div className="glass rounded-lg p-6 border-2 border-black">
-              <h2 className="font-display font-bold text-white text-lg mb-4 flex items-center gap-2">
+              <h2 className="font-display font-bold text-slate-200 text-lg mb-4 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-cyan-400" /> Payout Settings (UPI / QR Code)
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -439,7 +439,7 @@ export default function OwnerDashboardPage() {
                     placeholder="e.g. venueowner@upi"
                     value={ownerUpi}
                     onChange={(e) => setOwnerUpi(e.target.value)}
-                    className="w-full bg-[#121620] border-2 border-black rounded-md px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-400 transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)]"
+                    className="w-full bg-slate-900 border-2 border-black rounded-md px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-400 transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)]"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">This UPI ID will be shown to players during checkout.</p>
                 </div>
@@ -448,7 +448,7 @@ export default function OwnerDashboardPage() {
                     Payout QR Code (Optional)
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="relative border-2 border-dashed border-black rounded-md p-3 bg-[#121620] transition-colors text-center cursor-pointer flex-grow">
+                    <div className="relative border-2 border-dashed border-black rounded-md p-3 bg-slate-900 transition-colors text-center cursor-pointer flex-grow">
                       <input
                         id="owner-qr-upload"
                         type="file"
@@ -509,7 +509,7 @@ export default function OwnerDashboardPage() {
             ) : venues.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-5xl mb-4">🏢</div>
-                <h3 className="font-display text-xl font-bold text-white mb-2">No venues yet</h3>
+                <h3 className="font-display text-xl font-bold text-slate-200 mb-2">No venues yet</h3>
                 <p className="text-slate-400 mb-6">Add your first sports venue to start receiving bookings.</p>
                 <button onClick={() => setTab('verify')} className="btn-primary">
                   <Plus className="w-4 h-4" /> Add Your First Venue
@@ -525,7 +525,7 @@ export default function OwnerDashboardPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                         <div>
-                          <div className="text-white font-display font-bold">{venue.name}</div>
+                          <div className="text-slate-200 font-display font-bold">{venue.name}</div>
                           <div className="text-slate-300 text-xs">{getSportEmoji(venue.sport)} {venue.area}</div>
                         </div>
                         <div className={cn(
@@ -575,7 +575,7 @@ export default function OwnerDashboardPage() {
         {/* ── EDIT VENUE (inline) ─────────────────────────────── */}
         {tab === 'venues' && editingVenue && (
           <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
-            <h2 className="font-display font-bold text-white text-xl mb-6">Edit Venue: {editingVenue.name}</h2>
+            <h2 className="font-display font-bold text-slate-200 text-xl mb-6">Edit Venue: {editingVenue.name}</h2>
             <VenueForm
               mode="edit"
               initialData={editingVenue}
@@ -590,7 +590,7 @@ export default function OwnerDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Private Listing Form */}
             <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000] h-fit">
-              <h2 className="font-display font-bold text-white text-xl mb-1">Create New Venue Listing</h2>
+              <h2 className="font-display font-bold text-slate-200 text-xl mb-1">Create New Venue Listing</h2>
               <p className="text-slate-400 text-xs mb-6">List a new private sports facility to receive bookings.</p>
               <VenueForm
                 mode="add"
@@ -602,7 +602,7 @@ export default function OwnerDashboardPage() {
             {/* Mapped Infrastructure Verification Form */}
             <div className="space-y-6">
               <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
-                <h2 className="font-display font-bold text-white text-xl mb-1">Verify Existing Venue Ownership</h2>
+                <h2 className="font-display font-bold text-slate-200 text-xl mb-1">Verify Existing Venue Ownership</h2>
                 <p className="text-slate-400 text-xs mb-6">Enter the permanent venue code of a mapped sports infrastructure facility to verify ownership.</p>
                 
                 {verificationError && (
@@ -627,7 +627,7 @@ export default function OwnerDashboardPage() {
                       placeholder="e.g. PS-LKO-BAD-1043"
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value)}
-                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
                       required
                     />
                   </div>
@@ -642,7 +642,7 @@ export default function OwnerDashboardPage() {
                       placeholder="e.g. +91 98765 43210"
                       value={verificationPhone}
                       onChange={(e) => setVerificationPhone(e.target.value)}
-                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
                       required
                     />
                   </div>
@@ -657,7 +657,7 @@ export default function OwnerDashboardPage() {
                       placeholder="e.g. Google Drive link to electricity bill or tax receipt"
                       value={verificationProofUrl}
                       onChange={(e) => setVerificationProofUrl(e.target.value)}
-                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
                       required
                     />
                   </div>
@@ -672,7 +672,7 @@ export default function OwnerDashboardPage() {
                       placeholder="Specify your association (e.g. Owner, Lessee, Manager)"
                       value={verificationNotes}
                       onChange={(e) => setVerificationNotes(e.target.value)}
-                      className="w-full bg-[#121620] border-2 border-black rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
+                      className="w-full bg-slate-900 border-2 border-black rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 focus:shadow-[1px_1px_0px_#000] transition-all shadow-[2px_2px_0px_#000]"
                     />
                   </div>
 
@@ -694,13 +694,13 @@ export default function OwnerDashboardPage() {
 
               {/* Your Requests List */}
               <div className="glass rounded-lg p-6 border-2 border-black shadow-[6px_6px_0px_0px_#000]">
-                <h3 className="font-display font-bold text-white text-base mb-4">Ownership Verification Requests</h3>
+                <h3 className="font-display font-bold text-slate-200 text-base mb-4">Ownership Verification Requests</h3>
                 {ownerRequests.length === 0 ? (
                   <p className="text-slate-400 text-xs">No verification requests submitted yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {ownerRequests.map((req) => (
-                      <div key={req.id} className="bg-slate-950/40 border border-black/80 rounded p-3 flex flex-col gap-2">
+                      <div key={req.id} className="bg-slate-950 border border-black/80 rounded p-3 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-xs text-cyan-400 font-bold">{req.venueCode}</span>
                           <span className={cn(
@@ -714,7 +714,7 @@ export default function OwnerDashboardPage() {
                             {req.status === 'rejected' && 'Verification Rejected'}
                           </span>
                         </div>
-                        <div className="text-xs font-bold text-white">{req.infrastructureName}</div>
+                        <div className="text-xs font-bold text-slate-200">{req.infrastructureName}</div>
                         <div className="text-[10px] text-slate-500">
                           Submitted on {req.createdAt instanceof Date ? req.createdAt.toLocaleDateString() : new Date((req.createdAt as any).seconds * 1000).toLocaleDateString()}
                         </div>
@@ -744,12 +744,12 @@ export default function OwnerDashboardPage() {
                   className={cn(
                     'pb-3 font-bold text-sm relative transition-colors',
                     bookingSubTab === subTab.id
-                      ? 'text-cyan-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-cyan-400'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'text-cyan-600 dark:text-cyan-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-cyan-600 dark:after:bg-cyan-400'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                   )}
                 >
                   {subTab.label}
-                  <span className="ml-1.5 text-xs bg-slate-900 border border-black/60 px-1.5 py-0.5 rounded font-mono">
+                  <span className="ml-1.5 text-xs bg-slate-100 dark:bg-slate-900 border border-black/60 px-1.5 py-0.5 rounded font-mono text-slate-900 dark:text-slate-200">
                     {subTab.count}
                   </span>
                 </button>
@@ -774,7 +774,7 @@ export default function OwnerDashboardPage() {
                             {getSportEmoji(b.sport)}
                           </div>
                           <div className="space-y-1">
-                            <div className="font-display font-bold text-white text-base">{b.venueName}</div>
+                            <div className="font-display font-bold text-slate-200 text-base">{b.venueName}</div>
                             <div className="text-slate-400 text-xs flex flex-wrap gap-x-3 gap-y-1">
                               <span className="font-semibold text-slate-300">Player: {b.playerName || 'Player'} ({b.playerEmail})</span>
                               <span>•</span>
@@ -795,7 +795,7 @@ export default function OwnerDashboardPage() {
                             <img
                               src={b.screenshotUrl}
                               alt="Payment Proof"
-                              className="w-24 h-16 object-contain rounded border-2 border-black bg-slate-950/40 cursor-zoom-in hover:scale-105 transition-transform"
+                              className="w-24 h-16 object-contain rounded border-2 border-black bg-slate-950 cursor-zoom-in hover:scale-105 transition-transform"
                               onClick={() => {
                                 window.open(b.screenshotUrl, '_blank');
                               }}
@@ -805,7 +805,7 @@ export default function OwnerDashboardPage() {
                         )}
 
                         <div className="flex items-center gap-3 border-t lg:border-t-0 border-black/20 pt-3 lg:pt-0 justify-between lg:justify-end flex-shrink-0">
-                          <span className="font-extrabold text-white text-lg lg:mr-2">{formatCurrency(amount)}</span>
+                          <span className="font-extrabold text-slate-200 text-lg lg:mr-2">{formatCurrency(amount)}</span>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleReject(b.bookingId)}
@@ -848,7 +848,7 @@ export default function OwnerDashboardPage() {
                             {getSportEmoji(b.sport)}
                           </div>
                           <div>
-                            <div className="font-display font-bold text-white">{b.venueName}</div>
+                            <div className="font-display font-bold text-slate-200">{b.venueName}</div>
                             <div className="text-slate-400 text-sm flex flex-wrap gap-2 mt-1">
                               <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{b.playerName || 'Player'}</span>
                               <span>•</span>
@@ -868,7 +868,7 @@ export default function OwnerDashboardPage() {
                           <span className="text-xs font-bold px-3 py-1.5 rounded-md border-2 border-black bg-emerald-400 text-black shadow-[2px_2px_0px_#000]">
                             Confirmed
                           </span>
-                          <span className="font-bold text-white text-lg">{formatCurrency(amount)}</span>
+                          <span className="font-bold text-slate-200 text-lg">{formatCurrency(amount)}</span>
                         </div>
                       </div>
                     );
@@ -894,7 +894,7 @@ export default function OwnerDashboardPage() {
                             {getSportEmoji(b.sport)}
                           </div>
                           <div>
-                            <div className="font-display font-bold text-white">{b.venueName}</div>
+                            <div className="font-display font-bold text-slate-200">{b.venueName}</div>
                             <div className="text-slate-400 text-sm flex flex-wrap gap-2 mt-1">
                               <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{b.playerName || 'Player'}</span>
                               <span>•</span>
@@ -909,7 +909,7 @@ export default function OwnerDashboardPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4 ml-auto">
-                          <span className="font-bold text-white text-lg">{formatCurrency(amount)}</span>
+                          <span className="font-bold text-slate-200 text-lg">{formatCurrency(amount)}</span>
                         </div>
                       </div>
                     );
@@ -961,7 +961,7 @@ export default function OwnerDashboardPage() {
             {venues.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-4xl mb-3">📊</div>
-                <h3 className="font-display text-lg font-bold text-white mb-1">No Analytics Available</h3>
+                <h3 className="font-display text-lg font-bold text-slate-200 mb-1">No Analytics Available</h3>
                 <p className="text-slate-400 text-sm">List a venue and receive bookings to view venue-specific performance analytics.</p>
               </div>
             ) : (
@@ -986,7 +986,7 @@ export default function OwnerDashboardPage() {
                         <div className="flex items-center gap-2">
                           <div className="text-2xl">{getSportEmoji(v.sport)}</div>
                           <div>
-                            <div className="font-display font-bold text-white text-sm">{v.name}</div>
+                            <div className="font-display font-bold text-slate-200 text-sm">{v.name}</div>
                             <div className="text-slate-400 text-xs">{v.area}</div>
                           </div>
                         </div>
@@ -997,7 +997,7 @@ export default function OwnerDashboardPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-400">Bookings</span>
-                          <span className="font-bold text-white">{venueBookings.length}</span>
+                          <span className="font-bold text-slate-200">{venueBookings.length}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-400">Revenue</span>
@@ -1021,7 +1021,7 @@ export default function OwnerDashboardPage() {
 
             {/* Revenue by sport */}
             <div className="glass rounded-lg p-6 border-2 border-black">
-              <h2 className="font-display font-bold text-white text-lg mb-4 flex items-center gap-2">
+              <h2 className="font-display font-bold text-slate-200 text-lg mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-cyan-400" /> Revenue Summary
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

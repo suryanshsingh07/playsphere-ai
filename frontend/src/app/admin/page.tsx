@@ -286,7 +286,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4 bg-gradient-to-br from-[#0a0512] to-[#0a0a1a]">
+    <div className="min-h-screen pt-24 pb-16 px-4">
       <div className="max-w-6xl mx-auto">
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-8">
@@ -295,7 +295,7 @@ export default function AdminDashboardPage() {
               <div className="w-8 h-8 rounded-md bg-purple-500 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000]">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <h1 className="font-display text-3xl font-bold text-white">
+              <h1 className="font-display text-3xl font-bold text-slate-200">
                 Admin <span className="text-[#a855f7]">Dashboard</span>
               </h1>
             </div>
@@ -329,7 +329,7 @@ export default function AdminDashboardPage() {
                 'relative flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold whitespace-nowrap transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
                 tab === t.id
                   ? 'bg-purple-500 text-white shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] translate-x-0.5 translate-y-0.5'
-                  : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
               )}
             >
               {t.icon} {t.label}
@@ -354,7 +354,7 @@ export default function AdminDashboardPage() {
                 { label: 'Total Venues', value: venues.length, color: 'text-indigo-400', icon: '📍' },
                 { label: 'Total Bookings', value: bookings.length, color: 'text-rose-400', icon: '📅' },
               ].map((stat) => (
-                <div key={stat.label} className="bg-slate-900/80 backdrop-blur rounded-lg p-5 border-2 border-black shadow-[4px_4px_0px_0px_#000] text-center">
+                <div key={stat.label} className="bg-slate-900 rounded-lg p-5 border-2 border-black shadow-[4px_4px_0px_0px_#000] text-center">
                   <div className="text-3xl mb-2">{stat.icon}</div>
                   <div className={`font-display text-2xl font-bold ${stat.color}`}>{stat.value}</div>
                   <div className="text-slate-400 text-xs mt-1">{stat.label}</div>
@@ -377,9 +377,9 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            <div className="glass rounded-lg p-6 border-2 border-black shadow-[4px_4px_0px_#000] bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="glass rounded-lg p-6 border-2 border-black shadow-[4px_4px_0px_#000] bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h3 className="font-display font-bold text-white text-lg mb-1">🌱 Database Initialization & Seeding</h3>
+                <h3 className="font-display font-bold text-slate-200 text-lg mb-1">🌱 Database Initialization & Seeding</h3>
                 <p className="text-slate-400 text-sm">Deploy default landmarks and Lucknow sports infrastructure mapped areas.</p>
               </div>
               <button
@@ -402,13 +402,13 @@ export default function AdminDashboardPage() {
         {/* ── TAB: APPROVALS ────────────────────────────────────────── */}
         {tab === 'approvals' && (
           <div className="space-y-4">
-            <h2 className="font-display text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-400" /> Owner Approval Queue ({pendingOwners.length} pending)
             </h2>
             {pendingOwners.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-                <h3 className="font-display text-xl font-bold text-white mb-2">All clear!</h3>
+                <h3 className="font-display text-xl font-bold text-slate-200 mb-2">All clear!</h3>
                 <p className="text-slate-400">No pending owner approvals.</p>
               </div>
             ) : (
@@ -419,7 +419,7 @@ export default function AdminDashboardPage() {
                       {owner.displayName?.[0]?.toUpperCase() || 'O'}
                     </div>
                     <div>
-                      <div className="font-display font-bold text-white">{owner.displayName}</div>
+                      <div className="font-display font-bold text-slate-200">{owner.displayName}</div>
                       <div className="text-slate-400 text-sm">{owner.email}</div>
                       <div className="text-slate-500 text-xs mt-1">
                         {venues.filter((v) => v.ownerId === owner.uid).length} venues listed
@@ -461,7 +461,7 @@ export default function AdminDashboardPage() {
                         {owner.displayName?.[0]?.toUpperCase() || 'O'}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">{owner.displayName}</div>
+                        <div className="font-bold text-slate-200 text-sm">{owner.displayName}</div>
                         <div className="text-slate-400 text-xs">{owner.email}</div>
                       </div>
                     </div>
@@ -476,7 +476,7 @@ export default function AdminDashboardPage() {
 
             {/* Ownership Verification Requests */}
             <div className="mt-10 pt-8 border-t-2 border-black/30">
-              <h2 className="font-display text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <h2 className="font-display text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-indigo-400" /> Ownership Verification Requests ({ownershipRequests.length})
               </h2>
               {ownershipRequests.length === 0 ? (
@@ -494,7 +494,7 @@ export default function AdminDashboardPage() {
                             <Shield className="w-5 h-5 text-indigo-400" />
                           </div>
                           <div>
-                            <div className="font-bold text-white text-sm">{req.infrastructureName}</div>
+                            <div className="font-bold text-slate-200 text-sm">{req.infrastructureName}</div>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="font-mono text-xs text-cyan-400 font-bold tracking-wider">{req.venueCode}</span>
                               <span className="text-slate-500 text-[10px]">•</span>
@@ -521,7 +521,7 @@ export default function AdminDashboardPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                         <div className="space-y-1">
                           <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Owner Information</div>
-                          <div className="text-white font-bold">{req.ownerName}</div>
+                          <div className="text-slate-200 font-bold">{req.ownerName}</div>
                           <div className="text-slate-300">{req.ownerEmail}</div>
                           <div className="text-slate-300">Phone: {req.phone}</div>
                         </div>
@@ -567,13 +567,13 @@ export default function AdminDashboardPage() {
         {/* ── TAB: PLAYERS ──────────────────────────────────────────── */}
         {tab === 'players' && (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-cyan-400" /> Players ({players.length})
             </h2>
             {players.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-4xl mb-3">👥</div>
-                <h3 className="font-display text-lg font-bold text-white mb-1">No Players Registered</h3>
+                <h3 className="font-display text-lg font-bold text-slate-200 mb-1">No Players Registered</h3>
                 <p className="text-slate-400 text-sm">When users sign up as players, they will appear here.</p>
               </div>
             ) : (
@@ -584,7 +584,7 @@ export default function AdminDashboardPage() {
                       {p.displayName?.[0]?.toUpperCase() || 'P'}
                     </div>
                     <div>
-                      <div className="font-bold text-white text-sm">{p.displayName}</div>
+                      <div className="font-bold text-slate-200 text-sm">{p.displayName}</div>
                       <div className="text-slate-400 text-xs">{p.email}</div>
                     </div>
                   </div>
@@ -600,13 +600,13 @@ export default function AdminDashboardPage() {
         {/* ── TAB: OWNERS ───────────────────────────────────────────── */}
         {tab === 'owners' && (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-amber-400" /> Venue Owners ({owners.length})
             </h2>
             {owners.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-4xl mb-3">🏢</div>
-                <h3 className="font-display text-lg font-bold text-white mb-1">No Venue Owners Registered</h3>
+                <h3 className="font-display text-lg font-bold text-slate-200 mb-1">No Venue Owners Registered</h3>
                 <p className="text-slate-400 text-sm">When users sign up as owners, they will appear here.</p>
               </div>
             ) : (
@@ -621,7 +621,7 @@ export default function AdminDashboardPage() {
                           {o.displayName?.[0]?.toUpperCase() || 'O'}
                         </div>
                         <div>
-                          <div className="font-bold text-white text-sm">{o.displayName}</div>
+                          <div className="font-bold text-slate-200 text-sm">{o.displayName}</div>
                           <div className="text-slate-400 text-xs">{o.email}</div>
                         </div>
                       </div>
@@ -648,13 +648,13 @@ export default function AdminDashboardPage() {
         {/* ── TAB: VENUES ───────────────────────────────────────────── */}
         {tab === 'venues' && (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-indigo-400" /> All Venues ({venues.length})
             </h2>
             {venues.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-4xl mb-3">📍</div>
-                <h3 className="font-display text-lg font-bold text-white mb-1">No Venues Registered</h3>
+                <h3 className="font-display text-lg font-bold text-slate-200 mb-1">No Venues Registered</h3>
                 <p className="text-slate-400 text-sm">When owners list venues on the platform, they will appear here.</p>
               </div>
             ) : (
@@ -667,7 +667,7 @@ export default function AdminDashboardPage() {
                         {getSportEmoji(v.sport)}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">{v.name}</div>
+                        <div className="font-bold text-slate-200 text-sm">{v.name}</div>
                         <div className="text-slate-400 text-xs">
                           {v.area} • {owner ? owner.displayName : 'System'} • {formatCurrency(v.price)}/hr
                         </div>
@@ -689,13 +689,13 @@ export default function AdminDashboardPage() {
         {/* ── TAB: BOOKINGS ─────────────────────────────────────────── */}
         {tab === 'bookings' && (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-rose-400" /> All Bookings ({bookings.length})
             </h2>
             {bookings.length === 0 ? (
               <div className="glass rounded-lg p-12 text-center border-2 border-black">
                 <div className="text-4xl mb-3">📅</div>
-                <h3 className="font-display text-lg font-bold text-white mb-1">No Bookings Made</h3>
+                <h3 className="font-display text-lg font-bold text-slate-200 mb-1">No Bookings Made</h3>
                 <p className="text-slate-400 text-sm">When players make court or turf bookings, they will show up here.</p>
               </div>
             ) : (
@@ -723,7 +723,7 @@ export default function AdminDashboardPage() {
                         {getSportEmoji(b.sport)}
                       </div>
                       <div className="space-y-1">
-                        <div className="font-bold text-white text-sm">{b.venueName}</div>
+                        <div className="font-bold text-slate-200 text-sm">{b.venueName}</div>
                         <div className="text-slate-400 text-xs flex flex-wrap gap-x-2 gap-y-0.5">
                           <span>{b.playerName || 'Player'}</span>
                           <span>•</span>
@@ -763,7 +763,7 @@ export default function AdminDashboardPage() {
                           {paymentText}
                         </span>
                       </div>
-                      <span className="font-bold text-white">{formatCurrency(amount)}</span>
+                      <span className="font-bold text-slate-200">{formatCurrency(amount)}</span>
                     </div>
                   </div>
                 );
@@ -775,7 +775,7 @@ export default function AdminDashboardPage() {
         {/* ── TAB: INFRASTRUCTURE ────────────────────────────────────── */}
         {tab === 'infrastructure' && (
           <div className="space-y-6">
-            <h2 className="font-display text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold text-slate-200 flex items-center gap-2">
               🏛️ Lucknow Sports Infrastructure Intelligence ({allInfra.length})
             </h2>
 
@@ -783,7 +783,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass p-4 rounded-lg border-2 border-black shadow-[2px_2px_0px_#000]">
                 <div className="text-slate-400 text-xs uppercase font-bold tracking-wider">Total Mapped</div>
-                <div className="text-2xl font-extrabold text-white mt-1">{allInfra.length}</div>
+                <div className="text-2xl font-extrabold text-slate-200 mt-1">{allInfra.length}</div>
                 <div className="text-[10px] text-slate-500 mt-1">Lucknow facilities list</div>
               </div>
               <div className="glass p-4 rounded-lg border-2 border-black shadow-[2px_2px_0px_#000]">
@@ -817,7 +817,7 @@ export default function AdminDashboardPage() {
                   <div className="absolute top-0 right-0 bg-purple-500/10 text-purple-400 text-[10px] font-mono font-bold px-3 py-1 uppercase border-b border-l border-black/30">
                     Auto-Discovery Pipeline
                   </div>
-                  <h3 className="font-display text-md font-bold text-white mb-2 flex items-center gap-2">
+                  <h3 className="font-display text-md font-bold text-slate-200 mb-2 flex items-center gap-2">
                     🤖 Ingestion & Auto-Discovery Agent
                   </h3>
                   <p className="text-slate-400 text-xs mb-4 max-w-xl">
@@ -918,7 +918,7 @@ export default function AdminDashboardPage() {
               {/* Right: Area Heat Rank & Distribution Intelligence */}
               <div className="glass p-5 rounded-lg border-2 border-black shadow-[3px_3px_0px_#000] space-y-6">
                 <div>
-                  <h3 className="font-display text-sm font-bold text-white mb-3">
+                  <h3 className="font-display text-sm font-bold text-slate-200 mb-3">
                     📍 Area Density & Distribution
                   </h3>
                   <div className="space-y-3">
@@ -950,7 +950,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="border-t border-black/40 pt-4">
-                  <h3 className="font-display text-sm font-bold text-white mb-3">
+                  <h3 className="font-display text-sm font-bold text-slate-200 mb-3">
                     🏸 Sport Distribution (Live Metrics)
                   </h3>
                   <div className="space-y-3">
@@ -987,13 +987,13 @@ export default function AdminDashboardPage() {
 
             {/* 3. Mapped Facilities Table */}
             <div className="glass p-5 rounded-lg border-2 border-black shadow-[3px_3px_0px_#000]">
-              <h3 className="font-display text-sm font-bold text-white mb-4">
+              <h3 className="font-display text-sm font-bold text-slate-200 mb-4">
                 🗺️ Mapped Sports Facilities Listings
               </h3>
               {allInfra.length === 0 ? (
-                <div className="glass rounded-lg p-12 text-center border-2 border-black/50 bg-[#07040d]">
+                <div className="glass rounded-lg p-12 text-center border-2 border-black/50 bg-slate-900">
                   <Building2 className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <h3 className="font-display text-lg font-bold text-white mb-2">No Mapped Infrastructure</h3>
+                  <h3 className="font-display text-lg font-bold text-slate-200 mb-2">No Mapped Infrastructure</h3>
                   <p className="text-slate-400 text-xs max-w-sm mx-auto">No Lucknow sports facilities have been mapped yet. Run an ingestion scan or seed the database to populate the intelligence registry.</p>
                 </div>
               ) : (
@@ -1038,7 +1038,7 @@ export default function AdminDashboardPage() {
 
                         return (
                           <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                            <td className="py-3 font-semibold text-white">{item.name}</td>
+                            <td className="py-3 font-semibold text-slate-200">{item.name}</td>
                             <td className="capitalize font-semibold text-slate-300">{item.sport}</td>
                             <td className="text-slate-300">{item.area}</td>
                             <td className="capitalize text-slate-400">{item.infrastructureType}</td>
