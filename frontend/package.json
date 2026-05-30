@@ -1,22 +1,18 @@
 {
-  "name": "playsphere-ai",
+  "name": "playsphere-ai-frontend",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "frontend"
-  ],
   "scripts": {
-    "dev": "next dev frontend",
-    "build": "next build frontend",
-    "start": "next start frontend",
-    "lint": "eslint -c frontend/eslint.config.mjs frontend backend shared"
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint -c eslint.config.mjs . ../backend ../shared"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
     "@react-google-maps/api": "^2.20.8",
     "clsx": "^2.1.1",
     "firebase": "^12.13.0",
-    "firebase-admin": "^13.10.0",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleConciergeRequest } from '@/backend/ai/concierge';
 
+// Never pre-render at build time — requires Firebase + env vars at runtime only
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(req: NextRequest) {
   try {
     const { message, history, mode } = await req.json();

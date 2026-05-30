@@ -16,12 +16,15 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-// Set persistence explicitly to browser local persistence
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-  console.error('Failed to set Firebase Auth persistence:', err);
-});
+// Set persistence explicitly to browser local persistence (client-side only)
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error('Failed to set Firebase Auth persistence:', err);
+  });
+}
 
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
 });
+
 export default app;

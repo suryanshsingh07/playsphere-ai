@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { handleDiscoverRequest } from '@/backend/ai/discover';
 
+// Never pre-render at build time — requires Firebase + env vars at runtime only
+export const dynamic = 'force-dynamic';
+
+
 export async function POST() {
   try {
     const insights = await handleDiscoverRequest();
