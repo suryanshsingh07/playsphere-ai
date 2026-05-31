@@ -85,3 +85,45 @@ export function generateTicketNumber(sport: string): string {
   return `PS-${code}-2026-${random}`;
 }
 
+/**
+ * Recursively serializes Firestore data by converting complex types (such as Timestamps)
+ * into plain serializable JSON values.
+ */
+export function serializeFirestoreData(data: any): any {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  // Handle arrays
+  if (Array.isArray(data)) {
+    return data.map((item) => serializeFirestoreData(item));
+  }
+
+  // Handle Firestore Timestamp or custom objects with toDate()
+  if (typeof data.toDate === 'function') {
+    return data.toDate().toISOString();
+  }
+
+  // Handle Date instances
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
+
+  // Handle nested objects
+  if (typeof data === 'object') {
+    // If it has a specific constructor type we want to serialize (like DocumentReference)
+    if (data.constructor && data.constructor.name === 'DocumentReference') {
+      return { id: data.id, path: data.path };
+    }
+
+    const serialized: any = {};
+    for (const key of Object.keys(data)) {
+      serialized[key] = serializeFirestoreData(data[key]);
+    }
+    return serialized;
+  }
+
+  return data;
+}
+
+

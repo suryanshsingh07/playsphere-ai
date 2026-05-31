@@ -160,6 +160,8 @@ export interface Infrastructure {
   reviewCount?: number;
   amenities?: string[];
   venueCode?: string;
+  osmId?: string;
+  placeId?: string;
   ownershipStatus?: 'pending' | 'approved' | 'rejected' | null;
   linkedOwnerId?: string | null;
   ownershipVerifiedAt?: Timestamp | Date | null;

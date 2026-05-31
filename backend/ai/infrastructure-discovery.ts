@@ -1,4 +1,6 @@
 import { upsertInfrastructure } from '../firebase/firestore';
+import { fetchOSMInfrastructure } from './osm-discovery';
+import { Infrastructure } from '../../shared/types';
 
 export interface DiscoveredCandidate {
   name: string;
@@ -19,6 +21,8 @@ export interface DiscoveredCandidate {
   ownershipStatus: 'pending' | 'approved' | 'rejected' | null;
   linkedOwnerId: string | null;
   ownershipVerifiedAt: any | null;
+  placeId?: string;
+  osmId?: string;
 }
 
 export const LUCKNOW_DISCOVERED_POOL: DiscoveredCandidate[] = [
@@ -164,25 +168,111 @@ export const LUCKNOW_DISCOVERED_POOL: DiscoveredCandidate[] = [
   }
 ];
 
+async function enrichWithGoogle(name: string, area: string, apiKey: string) {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(name + ', ' + area + ', Lucknow')}&key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+      const match = data.results[0];
+      let imageUrl: string | undefined = undefined;
+      if (match.photos && match.photos.length > 0) {
+        imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${match.photos[0].photo_reference}&key=${apiKey}`;
+      }
+      return {
+        formattedAddress: match.formatted_address,
+        rating: match.rating,
+        reviewCount: match.user_ratings_total,
+        imageUrl,
+        placeId: match.place_id
+      };
+    }
+  } catch (err) {
+    console.error('[GOOGLE-ENRICHMENT] Failed to enrich venue:', name, err);
+  }
+  return null;
+}
+
 export async function runInfrastructureDiscovery() {
   const logs: string[] = [];
   let added = 0;
   let updated = 0;
+  let skipped = 0;
+  let enriched = 0;
   let errors = 0;
+  let osmFetched = 0;
 
   logs.push(`[${new Date().toLocaleTimeString()}] Starting sports infrastructure discovery for Lucknow...`);
-  logs.push(`Found ${LUCKNOW_DISCOVERED_POOL.length} potential infrastructure candidates from Lucknow sources.`);
 
-  for (const item of LUCKNOW_DISCOVERED_POOL) {
+  // 1. Fetch from OpenStreetMap Overpass API
+  logs.push(`Querying OpenStreetMap Overpass API for sports infrastructure in Lucknow...`);
+  const { rawFetched, normalized, rejected } = await fetchOSMInfrastructure();
+  osmFetched = rawFetched;
+  const normalizedCount = normalized.length;
+  const rejectedCount = rejected;
+  logs.push(`OSM Overpass query complete. Fetched ${rawFetched} candidates (Normalized: ${normalizedCount}, Rejected Junk: ${rejectedCount}).`);
+
+  // 2. Combine Pools (Seed + OSM)
+  const combinedCandidates: Omit<Infrastructure, 'id'>[] = [
+    ...LUCKNOW_DISCOVERED_POOL,
+    ...normalized
+  ];
+
+  logs.push(`Total candidates to process: ${combinedCandidates.length} (Seed: ${LUCKNOW_DISCOVERED_POOL.length}, OSM Normalized: ${normalizedCount}).`);
+
+  // 3. Setup Google Enrichment
+  const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const hasGoogleKey = googleApiKey.trim().length > 0;
+  if (hasGoogleKey) {
+    logs.push(`Google Places API key detected. Enabling optional metadata enrichment.`);
+  } else {
+    logs.push(`Google Places API key missing. Skipping enrichment phase.`);
+  }
+
+  // 4. Ingest and Enrich Candidates
+  let enrichmentCount = 0;
+  const ENRICHMENT_CAP = 5; // Cap to prevent high billing / rate limits
+
+  for (const item of combinedCandidates) {
     try {
-      logs.push(`Evaluating candidate: "${item.name}" in ${item.area} (${item.sport})...`);
+      const isOSM = item.source === 'osm_discovered';
+      const sourceLabel = isOSM ? 'OSM' : 'Seed';
+      
+      // Determine if we should attempt Google Enrichment (Only up to the cap for non-blocking design)
+      let enrichedThisVenue = false;
+      if (hasGoogleKey && enrichmentCount < ENRICHMENT_CAP) {
+        logs.push(`[ENRICH] Querying Google Places enrichment for "${item.name}"...`);
+        const enrichedData = await enrichWithGoogle(item.name, item.area, googleApiKey);
+        if (enrichedData) {
+          item.rating = enrichedData.rating ?? item.rating;
+          item.reviewCount = enrichedData.reviewCount ?? item.reviewCount;
+          if (enrichedData.imageUrl) item.imageUrl = enrichedData.imageUrl;
+          if (enrichedData.placeId) item.placeId = enrichedData.placeId;
+          if (enrichedData.formattedAddress) {
+            item.description = `${item.description || ''}\n\nAddress: ${enrichedData.formattedAddress}`;
+          }
+          item.source = 'osm_enriched'; // Upgrade source tag
+          enrichedThisVenue = true;
+          enrichmentCount++;
+          enriched++;
+          logs.push(`  -> ENRICHED: Successfully enriched metadata for "${item.name}" (Place ID: ${enrichedData.placeId})`);
+        } else {
+          logs.push(`  -> ENRICH SKIP: No exact match or empty response from Google Places.`);
+        }
+      }
+
+      logs.push(`Evaluating candidate: "${item.name}" in ${item.area} (${item.sport}) [Source: ${sourceLabel}]...`);
       const res = await upsertInfrastructure(item);
+      
       if (res.action === 'added') {
         added++;
         logs.push(`  -> SUCCESS: Created new mapped infrastructure: "${item.name}" (ID: ${res.id})`);
       } else {
         updated++;
-        logs.push(`  -> SKIP (Duplicate matched): Updated existing record for "${item.name}" (ID: ${res.id})`);
+        skipped++;
+        const finalStatus = enrichedThisVenue ? 'Enriched' : 'Duplicate Skipped';
+        logs.push(`  -> SKIP (Duplicate matched): Updated existing record for "${item.name}" (ID: ${res.id}) [Status: ${finalStatus}]`);
       }
     } catch (err: any) {
       errors++;
@@ -191,13 +281,17 @@ export async function runInfrastructureDiscovery() {
   }
 
   logs.push(`[${new Date().toLocaleTimeString()}] Discovery cycle completed.`);
-  logs.push(`Summary: Added ${added} new records, Skipped/Merged ${updated} duplicates, ${errors} errors.`);
+  logs.push(`Summary: OSM Fetched: ${osmFetched}, Normalized: ${normalizedCount}, Rejected: ${rejectedCount}, Added: ${added}, Updated: ${updated}, Skipped: ${skipped}, Enriched: ${enriched}, Errors: ${errors}.`);
 
   return {
     success: true,
+    osmFetched,
+    normalized: normalizedCount,
+    rejected: rejectedCount,
     added,
     updated,
-    skipped: updated,
+    skipped,
+    enriched,
     errors,
     logs
   };

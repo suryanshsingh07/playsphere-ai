@@ -71,8 +71,8 @@
     border-radius: 8px !important;
     padding-top: 0.75rem !important;
     padding-bottom: 0.75rem !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
     font-family: var(--font-space);
     font-weight: 500;
     transition: all 0.15s ease;
@@ -243,7 +243,12 @@
 
   .scrollbar-hide {
     -ms-overflow-style: none;
-    scrollbar-width: none;
+  }
+
+  @supports (scrollbar-width: none) {
+    .scrollbar-hide {
+      scrollbar-width: none;
+    }
   }
 
   .scrollbar-hide::-webkit-scrollbar {

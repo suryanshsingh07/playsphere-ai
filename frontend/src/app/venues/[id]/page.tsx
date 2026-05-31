@@ -343,9 +343,9 @@ export default function VenueDetailPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: 'Morning', time: '5–8 AM', price: venue.peakPricing.morning, emoji: '🌅', isCheap: false },
-                    { label: 'Afternoon', time: '11 AM–4 PM', price: venue.peakPricing.afternoon, emoji: '☀️', isCheap: true },
-                    { label: 'Evening', time: '5–10 PM', price: venue.peakPricing.evening, emoji: '🌆', isCheap: false },
+                    { label: 'Morning', time: '5–8 AM', price: venue.peakPricing?.morning ?? venue.price, emoji: '🌅', isCheap: false },
+                    { label: 'Afternoon', time: '11 AM–4 PM', price: venue.peakPricing?.afternoon ?? Math.round(venue.price * 0.85), emoji: '☀️', isCheap: true },
+                    { label: 'Evening', time: '5–10 PM', price: venue.peakPricing?.evening ?? Math.round(venue.price * 1.3), emoji: '🌆', isCheap: false },
                   ].map((t) => (
                     <div key={t.label} className={`text-center p-3 rounded-md border-2 border-black ${t.isCheap ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-bold' : 'bg-slate-900 text-slate-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'}`}>
                       <div className="text-xl mb-1">{t.emoji}</div>

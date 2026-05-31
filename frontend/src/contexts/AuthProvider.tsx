@@ -1,10 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, onIdTokenChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, onIdTokenChanged, getRedirectResult } from 'firebase/auth';
 import { onSnapshot, doc } from 'firebase/firestore';
 import { auth, db } from '@/backend/firebase/config';
 import { UserProfile } from '@/shared/types';
+import { ensureUserProfile } from '@/backend/firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -42,6 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
+
+    // Handle redirect result resolution on page load/mount
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          console.log('Redirect sign-in resolved successfully, ensuring profile...');
+          await ensureUserProfile(result.user, undefined, 'player');
+        }
+      })
+      .catch((err) => {
+        console.error('Error resolving redirect sign-in result:', err);
+      });
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);

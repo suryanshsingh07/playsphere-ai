@@ -5,10 +5,13 @@ import { getApprovedVenues } from '@/backend/firebase/firestore';
 import { VenueCard } from '@/components/venue/VenueCard';
 import { AIConciergePreview } from '@/components/ai/AIConciergePreview';
 import { VenueDiscoveryInsights } from '@/components/ai/VenueDiscoveryInsights';
+import { serializeFirestoreData } from '@/shared/helpers/utils';
+import { Venue } from '@/shared/types';
 
 export default async function HomePage() {
   const venues = await getApprovedVenues().catch(() => []);
-  const featuredVenues = venues.filter((v) => (v.rating || 0) >= 4.7).slice(0, 3);
+  const rawFeaturedVenues = venues.filter((v) => (v.rating || 0) >= 4.7).slice(0, 3);
+  const featuredVenues = serializeFirestoreData(rawFeaturedVenues) as Venue[];
 
   return (
     <div className="min-h-screen">

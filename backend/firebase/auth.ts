@@ -2,6 +2,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   signOut,
   updateProfile,
@@ -23,10 +24,23 @@ function getAdminEmails(): string[] {
 }
 
 export async function signInWithGoogle() {
-  const result = await signInWithPopup(auth, googleProvider);
-  // Google sign-in always defaults to 'player' role (unless email is whitelisted admin)
-  await ensureUserProfile(result.user, undefined, 'player');
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    // Google sign-in always defaults to 'player' role (unless email is whitelisted admin)
+    await ensureUserProfile(result.user, undefined, 'player');
+    return result.user;
+  } catch (error: any) {
+    if (error.code === 'auth/popup-blocked') {
+      console.warn('Popup blocked, falling back to sign-in with redirect...');
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+    if (error.code === 'auth/popup-closed-by-user') {
+      console.warn('Google sign-in popup closed by user.');
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function signInWithEmail(email: string, password: string) {
@@ -51,7 +65,7 @@ export async function logOut() {
   await signOut(auth);
 }
 
-async function ensureUserProfile(user: User, displayName?: string, role?: UserRole) {
+export async function ensureUserProfile(user: User, displayName?: string, role?: UserRole) {
   const userRef = doc(db, 'users', user.uid);
   const snap = await getDoc(userRef);
 

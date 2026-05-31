@@ -15,11 +15,52 @@ import {
   arrayRemove,
   onSnapshot,
   Unsubscribe,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from './config';
 import { isSlotInPast } from '@/shared/helpers/pricing';
 import { Venue, Booking, UserProfile, VenueFilters, ApprovalStatus, Landmark, Infrastructure, OwnershipRequest } from '@/shared/types';
 import { generateTicketId } from '@/shared/helpers/ticket';
+
+/** Helper to convert Firestore Timestamps to plain JS objects recursively,
+ *  which avoids Next.js Server-to-Client Component serialization errors. */
+export function serializeData<T>(data: T): T {
+  if (data === null || data === undefined) return data;
+
+  if (
+    (typeof Timestamp !== 'undefined' && data instanceof Timestamp) ||
+    (typeof data === 'object' &&
+      data !== null &&
+      'seconds' in data &&
+      'nanoseconds' in data &&
+      typeof (data as any).toDate === 'function')
+  ) {
+    return {
+      seconds: (data as any).seconds,
+      nanoseconds: (data as any).nanoseconds,
+    } as any;
+  }
+
+  if (data instanceof Date) {
+    return data as any;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map((item) => serializeData(item)) as any;
+  }
+
+  if (typeof data === 'object') {
+    const serialized: any = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        serialized[key] = serializeData(data[key]);
+      }
+    }
+    return serialized;
+  }
+
+  return data;
+}
 
 
 // ── VENUES ──────────────────────────────────────────────────────────────────
@@ -888,16 +929,34 @@ export async function upsertInfrastructure(infra: Omit<Infrastructure, 'id'> & {
   const newLat = infra.coordinates?.lat;
   const newLng = infra.coordinates?.lng;
   const newCode = infra.venueCode?.trim();
+  const newOsmId = infra.osmId?.trim();
+  const newPlaceId = infra.placeId?.trim();
 
-  // Match 1: name + area (case-insensitive trim match)
-  if (newName && newArea) {
+  // Priority 1: Match by placeId / OSM id
+  if (newOsmId) {
+    const found = allInfra.find((item) => item.osmId === newOsmId);
+    if (found) match = found;
+  }
+  if (!match && newPlaceId) {
+    const found = allInfra.find((item) => item.placeId === newPlaceId);
+    if (found) match = found;
+  }
+
+  // Priority 2: Match by venueCode (exact match)
+  if (!match && newCode) {
+    const found = allInfra.find((item) => item.venueCode?.trim() === newCode);
+    if (found) match = found;
+  }
+
+  // Priority 3: Match by name + area (case-insensitive trim match)
+  if (!match && newName && newArea) {
     const found = allInfra.find(
       (item) => item.name.trim().toLowerCase() === newName && item.area.trim().toLowerCase() === newArea
     );
     if (found) match = found;
   }
 
-  // Match 2: coordinates closeness (difference < 0.0005)
+  // Priority 4: Match by coordinates closeness (difference < 0.0005)
   if (!match && newLat !== undefined && newLng !== undefined) {
     const found = allInfra.find((item) => {
       const latDiff = Math.abs(item.coordinates.lat - newLat);
@@ -907,18 +966,11 @@ export async function upsertInfrastructure(infra: Omit<Infrastructure, 'id'> & {
     if (found) match = found;
   }
 
-  // Match 3: venueCode (exact match)
-  if (!match && newCode) {
-    const found = allInfra.find(
-      (item) => item.venueCode?.trim() === newCode
-    );
-    if (found) match = found;
-  }
-
   if (match) {
     // Merge safely preserving critical ownership properties
     const mergedData = {
-      ...infra,
+      ...match, // start with existing record
+      ...infra, // overwrite with incoming properties
       ownerLinked: match.ownerLinked ?? false,
       verified: match.verified ?? false,
       ownerId: match.ownerId ?? null,
