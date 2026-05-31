@@ -18,12 +18,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'PlaySphere AI — APL Final Round 2026 - Sports Venue Discovery for Lucknow',
+  title: 'PlaySphere AI',
   description:
     'Discover and book badminton courts, football turfs, swimming pools, and akharas across Lucknow with AI-powered recommendations for the APL Final Round 2026.',
   keywords: 'sports booking Lucknow, badminton court Lucknow, football turf Lucknow, AI sports, PlaySphere, APL Final Round',
   openGraph: {
-    title: 'PlaySphere AI — APL Final Round 2026',
+    title: 'PlaySphere AI',
     description: 'AI-powered sports venue discovery and booking for Lucknow - Final Round Evaluation',
     type: 'website',
   },

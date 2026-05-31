@@ -191,7 +191,7 @@ export default async function HomePage() {
                   '"Cheapest swimming pool near Hazratganj"',
                 ].map((example) => (
                   <div key={example} className="flex items-center gap-3 bg-slate-900 border-2 border-black rounded-lg px-4 py-3 shadow-[2px_2px_0px_#000]">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0 border border-black" />
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 shrink-0 border border-black" />
                     <span className="text-slate-300 text-sm font-medium italic">{example}</span>
                   </div>
                 ))}

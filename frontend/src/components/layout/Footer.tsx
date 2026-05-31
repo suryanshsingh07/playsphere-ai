@@ -10,8 +10,7 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 font-display font-bold text-xl mb-3">
               <div className="w-8 h-8 rounded-md bg-yellow-400 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000]">
-                <Zap className="w-4 h-4 text-black fill-black" />
-              </div>
+                <img src="../favicon.ico"/>              </div>
               <span className="gradient-text">PlaySphere AI</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
@@ -50,10 +49,10 @@ export function Footer() {
  
         <div className="border-t-2 border-black mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-500 text-sm">
-            © 2026 PlaySphere AI — Built by <span className="text-cyan-400 font-bold">Team DeepStack</span> for Final Round Evaluation
+            © 2026 PlaySphere AI — Built by <span className="text-cyan-400 font-bold">Team DeepStack</span>
           </p>
           <p className="text-slate-600 text-xs font-bold">
-            Powered by Llama 3.1 via Groq • Firebase • Next.js
+            Suryansh • Vikas • Shivam • Suyash
           </p>
         </div>
       </div>

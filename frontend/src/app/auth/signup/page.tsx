@@ -96,7 +96,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 font-display font-bold text-2xl mb-2">
             <div className="w-10 h-10 rounded-md bg-yellow-400 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_#000]">
-              <Zap className="w-5 h-5 text-black fill-black" />
+<               img src="../favicon.ico" alt="Logo" />        
             </div>
             <span className="gradient-text [text-shadow:1.5px_1.5px_0px_#000]">PlaySphere AI</span>
           </Link>
